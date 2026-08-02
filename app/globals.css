@@ -138,6 +138,30 @@ nav {
   gap: 8px;
 }
 
+/* Mobile nav - hide on desktop */
+.nav-links.mobile-only {
+  display: none;
+}
+
+/* Desktop nav - hide on mobile */
+.nav-links.desktop-only {
+  display: flex;
+}
+
+@media (max-width: 768px) {
+  .nav-links.mobile-only {
+    display: flex;
+  }
+  
+  .nav-links.desktop-only {
+    display: none;
+  }
+  
+  .nav-inner {
+    height: 64px;
+  }
+}
+
 .btn {
   font-family: var(--font-inter);
   font-size: 14px;
@@ -741,14 +765,56 @@ footer p {
   .feature-row p {
     max-width: none;
   }
+  .nav-links .btn-ghost {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .wrap {
+    padding: 0 24px;
+  }
+  
+  h1 {
+    font-size: clamp(32px, 8vw, 48px);
+  }
+  
+  .hero {
+    padding: 64px 0 80px;
+  }
+  
+  .features,
+  .why,
+  .cta-band {
+    padding: 80px 0;
+  }
+  
+  .stat-card {
+    padding: 32px 24px;
+  }
+  
+  .result-slip {
+    padding: 24px;
+  }
 }
 
 @media (max-width: 560px) {
   .wrap {
     padding: 0 20px;
   }
-  .nav-links .btn-ghost {
-    display: none;
+  .nav-inner {
+    height: 64px;
+  }
+  .seal {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+  .brand-name {
+    font-size: 16px;
+  }
+  .brand-sub {
+    font-size: 8.5px;
   }
   .cta-row {
     flex-direction: column;
@@ -757,6 +823,55 @@ footer p {
   .btn-lg {
     text-align: center;
     justify-content: center;
+    width: 100%;
+  }
+  .feature-row {
+    padding: 24px 0;
+    padding-left: 20px;
+  }
+  .section-head h2 {
+    font-size: 26px;
+  }
+  .why h2 {
+    font-size: 24px;
+  }
+  .cta-band h2 {
+    font-size: 26px;
+  }
+  .footer-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Dashboard mobile styles */
+@media (max-width: 768px) {
+  .stat-card,
+  .btn-outline {
+    padding: 24px 20px;
+  }
+  
+  table {
+    font-size: 13px;
+  }
+  
+  .stat-value {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  table {
+    font-size: 11px;
+  }
+  
+  .stat-card-head,
+  .stat-label {
+    font-size: 10px;
+  }
+  
+  .stat-value {
+    font-size: 20px;
   }
 }
 

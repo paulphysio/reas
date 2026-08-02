@@ -43,7 +43,7 @@ export default async function DashboardLayout({
               </div>
             </Link>
           </div>
-          <div className="nav-links">
+          <div className="nav-links desktop-only">
             <Link
               href="/dashboard"
               className="btn btn-ghost"
@@ -69,7 +69,7 @@ export default async function DashboardLayout({
               Chat
             </Link>
           </div>
-          <div className="nav-links">
+          <div className="nav-links desktop-only">
             <Link
               href="/dashboard/profile"
               className="btn btn-ghost"
@@ -80,6 +80,13 @@ export default async function DashboardLayout({
                 {profile?.full_name || 'Profile'}
               </span>
             </Link>
+            <form action="/auth/logout" method="POST">
+              <button type="submit" className="btn btn-ghost">
+                <LogOut className="w-5 h-5" />
+              </button>
+            </form>
+          </div>
+          <div className="nav-links mobile-only">
             <form action="/auth/logout" method="POST">
               <button type="submit" className="btn btn-ghost">
                 <LogOut className="w-5 h-5" />

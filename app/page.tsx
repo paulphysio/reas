@@ -101,15 +101,20 @@ export default function Home() {
       <nav>
         <div className="wrap nav-inner">
           <div className="brand">
-            <div className="seal">R</div>
-            <div>
-              <div className="brand-name">REAS</div>
-              <span className="brand-sub">Examination System</span>
-            </div>
+            <Link href="/" className="flex items-center gap-3">
+              <div className="seal">R</div>
+              <div>
+                <div className="brand-name">REAS</div>
+                <span className="brand-sub">Examination System</span>
+              </div>
+            </Link>
           </div>
-          <div className="nav-links">
+          <div className="nav-links desktop-only">
             <Link href="/auth/login" className="btn btn-ghost">Sign in</Link>
             <Link href="/auth/register" className="btn btn-gold">Get started</Link>
+          </div>
+          <div className="nav-links mobile-only">
+            <Link href="/auth/register" className="btn btn-gold" style={{ padding: '10px 16px', fontSize: '13px' }}>Get started</Link>
           </div>
         </div>
       </nav>

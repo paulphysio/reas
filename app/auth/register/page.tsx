@@ -56,8 +56,11 @@ export default function RegisterPage() {
               </div>
             </Link>
           </div>
-          <div className="nav-links">
+          <div className="nav-links desktop-only">
             <Link href="/auth/login" className="btn btn-ghost">Sign in</Link>
+          </div>
+          <div className="nav-links mobile-only">
+            <Link href="/auth/login" className="btn btn-ghost" style={{ padding: '10px 16px', fontSize: '13px' }}>Sign in</Link>
           </div>
         </div>
       </nav>

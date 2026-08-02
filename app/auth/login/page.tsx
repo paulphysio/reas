@@ -47,8 +47,11 @@ export default function LoginPage() {
               </div>
             </Link>
           </div>
-          <div className="nav-links">
+          <div className="nav-links desktop-only">
             <Link href="/auth/register" className="btn btn-gold">Get started</Link>
+          </div>
+          <div className="nav-links mobile-only">
+            <Link href="/auth/register" className="btn btn-gold" style={{ padding: '10px 16px', fontSize: '13px' }}>Get started</Link>
           </div>
         </div>
       </nav>
