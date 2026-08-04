@@ -18,6 +18,50 @@ const FAIL_INDICES: Record<number, string> = { 2: 'Mailbox unavailable', 6: 'Add
 
 export default function MailAutomationPage() {
   const [isLanding, setIsLanding] = useState(true)
+
+  // Add styles
+  useEffect(() => {
+    const style = document.createElement('style')
+    style.textContent = `
+      @keyframes reas-spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+
+      @media (max-width: 1024px) {
+        .reas-left-sidebar, .reas-right-sidebar {
+          display: none !important;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .reas-hero-grid {
+          grid-template-columns: 1fr !important;
+          padding: 48px 20px !important;
+        }
+        .reas-features-grid {
+          grid-template-columns: 1fr !important;
+          padding: 48px 20px !important;
+        }
+        .reas-how-it-works {
+          grid-template-columns: 1fr !important;
+          padding: 48px 20px !important;
+        }
+        .reas-dashboard-stats {
+          grid-template-columns: 1fr !important;
+        }
+        .reas-dashboard-cards {
+          grid-template-columns: 1fr !important;
+        }
+      }
+    `
+    document.head.appendChild(style)
+    return () => {
+      if (document.head.contains(style)) {
+        document.head.removeChild(style)
+      }
+    }
+  }, [])
   const [isLoginPage, setIsLoginPage] = useState(false)
   const [isApp, setIsApp] = useState(false)
 
@@ -218,46 +262,3 @@ export default function MailAutomationPage() {
 
   return null
 }
-
-export default function MailAutomationPageWithStyles() {
-  return (
-    <>
-      <style>{styles}</style>
-      <MailAutomationPage />
-    </>
-  )
-}
-
-const styles = `
-@keyframes reas-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@media (max-width: 1024px) {
-  .reas-left-sidebar, .reas-right-sidebar {
-    display: none !important;
-  }
-}
-
-@media (max-width: 768px) {
-  .reas-hero-grid {
-    grid-template-columns: 1fr !important;
-    padding: 48px 20px !important;
-  }
-  .reas-features-grid {
-    grid-template-columns: 1fr !important;
-    padding: 48px 20px !important;
-  }
-  .reas-how-it-works {
-    grid-template-columns: 1fr !important;
-    padding: 48px 20px !important;
-  }
-  .reas-dashboard-stats {
-    grid-template-columns: 1fr !important;
-  }
-  .reas-dashboard-cards {
-    grid-template-columns: 1fr !important;
-  }
-}
-`

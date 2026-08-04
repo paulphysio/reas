@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter, IBM_Plex_Mono, Lora } from "next/font/google";
+import { Fraunces, Inter, Lora } from "next/font/google";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -14,10 +14,9 @@ const inter = Inter({
   display: "swap",
 });
 
-const ibmPlexMono = IBM_Plex_Mono({
+const lora = Lora({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-ibm-plex-mono",
+  variable: "--font-lora",
   display: "swap",
 });
 
@@ -33,7 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${fraunces.variable} ${inter.variable} ${ibmPlexMono.variable}`}>
+      <body className={`${fraunces.variable} ${inter.variable} ${lora.variable}`}>
         {children}
       </body>
     </html>

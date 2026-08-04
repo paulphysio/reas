@@ -80,7 +80,7 @@ export default function UploadPage() {
               background: 'rgba(192, 57, 43, 0.1)', 
               border: '1px solid var(--red)',
               color: 'var(--red)',
-              fontFamily: 'var(--font-ibm-plex-mono)',
+              fontFamily: 'var(--font-ibm-plex-mono), monospace',
               fontSize: '13px'
             }}>
               {error}
@@ -90,7 +90,7 @@ export default function UploadPage() {
           <div>
             <label htmlFor="file-upload" style={{ 
               display: 'block', 
-              fontFamily: 'var(--font-ibm-plex-mono)', 
+              fontFamily: 'var(--font-ibm-plex-mono), monospace', 
               fontSize: '11.5px', 
               letterSpacing: '0.1em', 
               textTransform: 'uppercase',
@@ -141,7 +141,7 @@ export default function UploadPage() {
             <div>
               <label htmlFor="level" style={{ 
                 display: 'block', 
-                fontFamily: 'var(--font-ibm-plex-mono)', 
+                fontFamily: 'var(--font-ibm-plex-mono), monospace', 
                 fontSize: '11.5px', 
                 letterSpacing: '0.1em', 
                 textTransform: 'uppercase',
@@ -178,7 +178,7 @@ export default function UploadPage() {
             <div>
               <label htmlFor="department" style={{ 
                 display: 'block', 
-                fontFamily: 'var(--font-ibm-plex-mono)', 
+                fontFamily: 'var(--font-ibm-plex-mono), monospace', 
                 fontSize: '11.5px', 
                 letterSpacing: '0.1em', 
                 textTransform: 'uppercase',
@@ -213,7 +213,7 @@ export default function UploadPage() {
             <div>
               <label htmlFor="session" style={{ 
                 display: 'block', 
-                fontFamily: 'var(--font-ibm-plex-mono)', 
+                fontFamily: 'var(--font-ibm-plex-mono), monospace', 
                 fontSize: '11.5px', 
                 letterSpacing: '0.1em', 
                 textTransform: 'uppercase',
@@ -248,7 +248,7 @@ export default function UploadPage() {
             <div>
               <label htmlFor="semester" style={{ 
                 display: 'block', 
-                fontFamily: 'var(--font-ibm-plex-mono)', 
+                fontFamily: 'var(--font-ibm-plex-mono), monospace', 
                 fontSize: '11.5px', 
                 letterSpacing: '0.1em', 
                 textTransform: 'uppercase',
