@@ -18,99 +18,101 @@ export default async function ResultsPage() {
   }
 
   return (
-    <div style={{ paddingTop: '48px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '48px' }}>
+    <div style={{ maxWidth: 1120, margin: '0 auto', padding: '0 20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px', flexDirection: 'column', gap: '16px' }} className="md:flex-row md:items-end md:mb-8">
         <div>
-          <p className="eyebrow">Results</p>
-          <h1 style={{ marginBottom: '8px' }}>Result Sheets</h1>
-          <p style={{ color: 'var(--chalk-dim)', lineHeight: '1.65' }}>
+          <h1 style={{ font: '700 28px Lora,Georgia,serif', marginBottom: '8px' }}>Result Sheets</h1>
+          <p style={{ color: 'var(--reas-muted)', lineHeight: '1.6', fontSize: '14px' }}>
             Manage your uploaded Excel result sheets
           </p>
         </div>
         <Link
           href="/dashboard/results/upload"
-          className="btn btn-gold btn-lg"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+          style={{ 
+            display: 'inline-flex', 
+            alignItems: 'center', 
+            gap: '8px',
+            background: 'oklch(42% 0.16 258)',
+            color: '#fff',
+            padding: '10px 16px',
+            borderRadius: '8px',
+            textDecoration: 'none',
+            font: '600 13px system-ui,sans-serif'
+          }}
+          className="md:px-5 md:text-sm"
         >
-          <Plus style={{ width: '20px', height: '20px' }} />
+          <Plus style={{ width: '18px', height: '18px' }} />
           Upload New
         </Link>
       </div>
 
       {resultSheets && resultSheets.length > 0 ? (
         <div style={{ 
-          background: 'var(--paper)', 
-          borderRadius: '6px', 
-          padding: '44px 38px',
-          color: 'var(--ink)',
-          boxShadow: '0 30px 60px -24px rgba(0, 0, 0, 0.5)'
-        }}>
+          background: 'var(--reas-card)', 
+          borderRadius: '12px', 
+          padding: '20px',
+          border: '1px solid var(--reas-border)'
+        }} className="md:p-7">
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid #ddd6c4' }}>
+                <tr style={{ borderBottom: '1px solid var(--reas-divider)' }}>
                   <th style={{ 
-                    padding: '18px 0', 
+                    padding: '12px 0', 
                     textAlign: 'left', 
-                    fontFamily: 'var(--font-ibm-plex-mono)', 
-                    fontSize: '11px', 
-                    letterSpacing: '0.08em', 
-                    color: '#7a7264', 
+                    font: '600 11px system-ui,sans-serif', 
+                    letterSpacing: '0.05em', 
+                    color: 'var(--reas-muted)', 
                     textTransform: 'uppercase' 
                   }}>
                     Filename
                   </th>
                   <th style={{ 
-                    padding: '18px 0', 
+                    padding: '12px 0', 
                     textAlign: 'left', 
-                    fontFamily: 'var(--font-ibm-plex-mono)', 
-                    fontSize: '11px', 
-                    letterSpacing: '0.08em', 
-                    color: '#7a7264', 
+                    font: '600 11px system-ui,sans-serif', 
+                    letterSpacing: '0.05em', 
+                    color: 'var(--reas-muted)', 
                     textTransform: 'uppercase' 
                   }}>
                     Department
                   </th>
                   <th style={{ 
-                    padding: '18px 0', 
+                    padding: '12px 0', 
                     textAlign: 'left', 
-                    fontFamily: 'var(--font-ibm-plex-mono)', 
-                    fontSize: '11px', 
-                    letterSpacing: '0.08em', 
-                    color: '#7a7264', 
+                    font: '600 11px system-ui,sans-serif', 
+                    letterSpacing: '0.05em', 
+                    color: 'var(--reas-muted)', 
                     textTransform: 'uppercase' 
                   }}>
                     Level
                   </th>
                   <th style={{ 
-                    padding: '18px 0', 
+                    padding: '12px 0', 
                     textAlign: 'left', 
-                    fontFamily: 'var(--font-ibm-plex-mono)', 
-                    fontSize: '11px', 
-                    letterSpacing: '0.08em', 
-                    color: '#7a7264', 
+                    font: '600 11px system-ui,sans-serif', 
+                    letterSpacing: '0.05em', 
+                    color: 'var(--reas-muted)', 
                     textTransform: 'uppercase' 
                   }}>
                     Session
                   </th>
                   <th style={{ 
-                    padding: '18px 0', 
+                    padding: '12px 0', 
                     textAlign: 'left', 
-                    fontFamily: 'var(--font-ibm-plex-mono)', 
-                    fontSize: '11px', 
-                    letterSpacing: '0.08em', 
-                    color: '#7a7264', 
+                    font: '600 11px system-ui,sans-serif', 
+                    letterSpacing: '0.05em', 
+                    color: 'var(--reas-muted)', 
                     textTransform: 'uppercase' 
                   }}>
                     Semester
                   </th>
                   <th style={{ 
-                    padding: '18px 0', 
+                    padding: '12px 0', 
                     textAlign: 'left', 
-                    fontFamily: 'var(--font-ibm-plex-mono)', 
-                    fontSize: '11px', 
-                    letterSpacing: '0.08em', 
-                    color: '#7a7264', 
+                    font: '600 11px system-ui,sans-serif', 
+                    letterSpacing: '0.05em', 
+                    color: 'var(--reas-muted)', 
                     textTransform: 'uppercase' 
                   }}>
                     Date
@@ -119,20 +121,20 @@ export default async function ResultsPage() {
               </thead>
               <tbody>
                 {resultSheets.map((sheet: any) => (
-                  <tr key={sheet.id} style={{ borderBottom: '1px dashed #ddd6c4' }}>
-                    <td style={{ padding: '18px 0' }}>
+                  <tr key={sheet.id} style={{ borderBottom: '1px solid var(--reas-divider)' }}>
+                    <td style={{ padding: '12px 0' }}>
                       <Link
                         href={`/dashboard/results/${sheet.id}`}
-                        style={{ color: 'var(--red)', fontWeight: 600 }}
+                        style={{ color: 'oklch(42% 0.16 258)', fontWeight: 600, textDecoration: 'none' }}
                       >
                         {sheet.filename || 'Untitled'}
                       </Link>
                     </td>
-                    <td style={{ padding: '18px 0', color: '#5a5344' }}>{sheet.department}</td>
-                    <td style={{ padding: '18px 0', color: '#5a5344' }}>{sheet.level}</td>
-                    <td style={{ padding: '18px 0', color: '#5a5344' }}>{sheet.session}</td>
-                    <td style={{ padding: '18px 0', color: '#5a5344' }}>{sheet.semester}</td>
-                    <td style={{ padding: '18px 0', color: '#7a7264', fontSize: '13px' }}>
+                    <td style={{ padding: '12px 0', color: 'var(--reas-text)' }}>{sheet.department}</td>
+                    <td style={{ padding: '12px 0', color: 'var(--reas-text)' }}>{sheet.level}</td>
+                    <td style={{ padding: '12px 0', color: 'var(--reas-text)' }}>{sheet.session}</td>
+                    <td style={{ padding: '12px 0', color: 'var(--reas-text)' }}>{sheet.semester}</td>
+                    <td style={{ padding: '12px 0', color: 'var(--reas-muted)', fontSize: '13px' }}>
                       {new Date(sheet.created_at).toLocaleDateString()}
                     </td>
                   </tr>
@@ -143,26 +145,34 @@ export default async function ResultsPage() {
         </div>
       ) : (
         <div style={{ 
-          background: 'var(--paper)', 
-          borderRadius: '6px', 
-          padding: '64px 38px',
-          color: 'var(--ink)',
-          boxShadow: '0 30px 60px -24px rgba(0, 0, 0, 0.5)',
+          background: 'var(--reas-card)', 
+          borderRadius: '12px', 
+          padding: '48px 24px',
+          border: '1px solid var(--reas-border)',
           textAlign: 'center'
-        }}>
-          <FileSpreadsheet style={{ width: '64px', height: '64px', color: '#7a7264', margin: '0 auto 24px' }} />
-          <h3 style={{ fontFamily: 'var(--font-fraunces)', fontWeight: '600', fontSize: '20px', color: 'var(--ink)', marginBottom: '12px' }}>
+        }} className="md:py-16 md:px-10">
+          <FileSpreadsheet style={{ width: '48px', height: '48px', color: 'var(--reas-muted)', margin: '0 auto 16px' }} />
+          <h3 style={{ font: '600 16px system-ui,sans-serif', marginBottom: '8px' }}>
             No result sheets yet
           </h3>
-          <p style={{ color: '#7a7264', marginBottom: '24px', fontSize: '14px' }}>
+          <p style={{ color: 'var(--reas-muted)', marginBottom: '20px', fontSize: '14px' }}>
             Upload your first result sheet to get started
           </p>
           <Link
             href="/dashboard/results/upload"
-            className="btn btn-gold btn-lg"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+            style={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              background: 'oklch(42% 0.16 258)',
+              color: '#fff',
+              padding: '10px 20px',
+              borderRadius: '8px',
+              textDecoration: 'none',
+              font: '600 14px system-ui,sans-serif'
+            }}
           >
-            <Plus style={{ width: '20px', height: '20px' }} />
+            <Plus style={{ width: '18px', height: '18px' }} />
             Upload First Result
           </Link>
         </div>

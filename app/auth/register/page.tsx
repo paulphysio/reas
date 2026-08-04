@@ -1,25 +1,117 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import type { Department, Semester } from '@/lib/types'
+
+interface School {
+  id: string
+  name: string
+  type: string
+  state: string
+}
+
+interface Department {
+  id: string
+  code: string
+  name: string
+}
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
-  const [department, setDepartment] = useState<Department>('PET')
+  const [schoolId, setSchoolId] = useState('')
+  const [customSchoolName, setCustomSchoolName] = useState('')
+  const [departmentId, setDepartmentId] = useState('')
+  const [customDepartmentName, setCustomDepartmentName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [schools, setSchools] = useState<School[]>([])
+  const [departments, setDepartments] = useState<Department[]>([])
+  const [loadingSchools, setLoadingSchools] = useState(true)
   const router = useRouter()
   const supabase = createClient()
+
+  useEffect(() => {
+    fetchSchools()
+  }, [])
+
+  useEffect(() => {
+    if (schoolId && schoolId !== 'other') {
+      fetchDepartments(schoolId)
+    } else {
+      setDepartments([])
+      setDepartmentId('')
+    }
+  }, [schoolId])
+
+  const fetchSchools = async () => {
+    setLoadingSchools(true)
+    const { data, error } = await supabase
+      .from('schools')
+      .select('*')
+      .order('name')
+    
+    if (error) {
+      console.error('Error fetching schools:', error)
+    } else {
+      setSchools(data || [])
+    }
+    setLoadingSchools(false)
+  }
+
+  const fetchDepartments = async (schoolId: string) => {
+    const { data, error } = await supabase
+      .from('departments')
+      .select('*')
+      .eq('school_id', schoolId)
+      .order('name')
+    
+    if (error) {
+      console.error('Error fetching departments:', error)
+    } else {
+      setDepartments(data || [])
+    }
+  }
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
+
+    if (!fullName.trim()) {
+      setError('Full name is required')
+      setLoading(false)
+      return
+    }
+
+    const isCustomSchool = schoolId === 'other'
+    if (!isCustomSchool && !schoolId) {
+      setError('Please select your institution')
+      setLoading(false)
+      return
+    }
+
+    if (isCustomSchool && !customSchoolName.trim()) {
+      setError('Please enter your institution name')
+      setLoading(false)
+      return
+    }
+
+    const isCustomDept = departmentId === 'other'
+    if (!isCustomDept && !departmentId) {
+      setError('Please select your department')
+      setLoading(false)
+      return
+    }
+
+    if (isCustomDept && !customDepartmentName.trim()) {
+      setError('Please enter your department name')
+      setLoading(false)
+      return
+    }
 
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -27,7 +119,6 @@ export default function RegisterPage() {
       options: {
         data: {
           full_name: fullName,
-          department,
         },
       },
     })
@@ -35,217 +126,199 @@ export default function RegisterPage() {
     if (error) {
       setError(error.message)
     } else {
-      router.push('/dashboard')
+      // Update profile with school and department
+      if (data.user) {
+        const profileData: any = {}
+        
+        if (isCustomSchool) {
+          profileData.custom_school_name = customSchoolName.trim()
+        } else {
+          profileData.school_id = schoolId
+        }
+
+        if (isCustomDept) {
+          profileData.custom_department_name = customDepartmentName.trim()
+        } else {
+          profileData.department_id = departmentId
+        }
+
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update(profileData)
+          .eq('id', data.user.id)
+        
+        if (profileError) {
+          console.error('Error updating profile:', profileError)
+        }
+      }
+      router.push('/app')
       router.refresh()
     }
     setLoading(false)
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--ink)', color: 'var(--chalk)' }}>
-      <div className="grain"></div>
-      
-      <nav>
-        <div className="wrap nav-inner">
-          <div className="brand">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="seal">R</div>
-              <div>
-                <div className="brand-name">REAS</div>
-                <span className="brand-sub">Examination System</span>
-              </div>
-            </Link>
-          </div>
-          <div className="nav-links desktop-only">
-            <Link href="/auth/login" className="btn btn-ghost">Sign in</Link>
-          </div>
-          <div className="nav-links mobile-only">
-            <Link href="/auth/login" className="btn btn-ghost" style={{ padding: '10px 16px', fontSize: '13px' }}>Sign in</Link>
-          </div>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', background: 'oklch(99% 0.004 258)' }}>
+      <div style={{ width: '100%', maxWidth: '380px', background: '#fff', border: '1px solid oklch(88% 0.02 258)', borderRadius: '14px', padding: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '26px' }}>
+          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'oklch(42% 0.16 258)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', font: '700 16px "Lora",Georgia,serif' }}>R</div>
+          <div style={{ font: '700 19px "Lora",Georgia,serif' }}>Reas</div>
         </div>
-      </nav>
+        <div style={{ font: '700 20px "Lora",Georgia,serif', marginBottom: '6px' }}>Create adviser account</div>
+        <div style={{ font: '400 13.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', marginBottom: '22px' }}>Sign up to access student records and send tools.</div>
 
-      <div className="wrap" style={{ paddingTop: '96px', paddingBottom: '110px' }}>
-        <div style={{ maxWidth: '420px', margin: '0 auto' }}>
-          <p className="eyebrow">Create account</p>
-          <h1 style={{ marginBottom: '24px' }}>Join REAS</h1>
-          <p style={{ color: 'var(--chalk-dim)', marginBottom: '36px', lineHeight: '1.65' }}>
-            Create your account to start managing academic results efficiently.
-          </p>
+        <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div>
+            <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Full Name</div>
+            <input
+              type="text"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Dr. Jordan Blake"
+              required
+              style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none' }}
+            />
+          </div>
 
-          <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            {error && (
-              <div style={{ 
-                padding: '14px 20px', 
-                borderRadius: '6px', 
-                background: 'rgba(192, 57, 43, 0.1)', 
-                border: '1px solid var(--red)',
-                color: 'var(--red)',
-                fontFamily: 'var(--font-ibm-plex-mono)',
-                fontSize: '13px'
-              }}>
-                {error}
-              </div>
+          <div>
+            <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Work email</div>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@university.edu"
+              required
+              style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none' }}
+            />
+          </div>
+
+          <div>
+            <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Institution</div>
+            {loadingSchools ? (
+              <div style={{ font: '400 13px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', padding: '10px 12px' }}>Loading institutions...</div>
+            ) : (
+              <>
+                <select
+                  value={schoolId}
+                  onChange={(e) => {
+                    setSchoolId(e.target.value)
+                    if (e.target.value !== 'other') {
+                      setCustomSchoolName('')
+                    }
+                  }}
+                  required
+                  style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none', background: '#fff', marginBottom: schoolId === 'other' ? '8px' : '0' }}
+                >
+                  <option value="">Select your institution</option>
+                  {schools.map((school) => (
+                    <option key={school.id} value={school.id}>
+                      {school.name} ({school.state})
+                    </option>
+                  ))}
+                  <option value="other">Other (outside Nigeria)</option>
+                </select>
+                {schoolId === 'other' && (
+                  <input
+                    type="text"
+                    value={customSchoolName}
+                    onChange={(e) => setCustomSchoolName(e.target.value)}
+                    placeholder="Enter your institution name"
+                    required
+                    style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none' }}
+                  />
+                )}
+              </>
             )}
-
-            <div>
-              <label htmlFor="fullName" style={{ 
-                display: 'block', 
-                fontFamily: 'var(--font-ibm-plex-mono)', 
-                fontSize: '11.5px', 
-                letterSpacing: '0.1em', 
-                textTransform: 'uppercase',
-                color: 'var(--gold)',
-                marginBottom: '12px'
-              }}>
-                Full Name
-              </label>
-              <input
-                id="fullName"
-                name="fullName"
-                type="text"
-                required
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '14px 20px',
-                  background: 'var(--paper)',
-                  border: '1px solid var(--line-strong)',
-                  borderRadius: '6px',
-                  color: 'var(--ink)',
-                  fontFamily: 'var(--font-inter)',
-                  fontSize: '15px',
-                  outline: 'none'
-                }}
-                placeholder="John Doe"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="email" style={{ 
-                display: 'block', 
-                fontFamily: 'var(--font-ibm-plex-mono)', 
-                fontSize: '11.5px', 
-                letterSpacing: '0.1em', 
-                textTransform: 'uppercase',
-                color: 'var(--gold)',
-                marginBottom: '12px'
-              }}>
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '14px 20px',
-                  background: 'var(--paper)',
-                  border: '1px solid var(--line-strong)',
-                  borderRadius: '6px',
-                  color: 'var(--ink)',
-                  fontFamily: 'var(--font-inter)',
-                  fontSize: '15px',
-                  outline: 'none'
-                }}
-                placeholder="you@example.com"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="department" style={{ 
-                display: 'block', 
-                fontFamily: 'var(--font-ibm-plex-mono)', 
-                fontSize: '11.5px', 
-                letterSpacing: '0.1em', 
-                textTransform: 'uppercase',
-                color: 'var(--gold)',
-                marginBottom: '12px'
-              }}>
-                Department
-              </label>
-              <select
-                id="department"
-                name="department"
-                value={department}
-                onChange={(e) => setDepartment(e.target.value as Department)}
-                style={{
-                  width: '100%',
-                  padding: '14px 20px',
-                  background: 'var(--paper)',
-                  border: '1px solid var(--line-strong)',
-                  borderRadius: '6px',
-                  color: 'var(--ink)',
-                  fontFamily: 'var(--font-inter)',
-                  fontSize: '15px',
-                  outline: 'none',
-                  cursor: 'pointer'
-                }}
-              >
-                <option value="PET">PET</option>
-                <option value="CHEM">CHEM</option>
-                <option value="MECH">MECH</option>
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="password" style={{ 
-                display: 'block', 
-                fontFamily: 'var(--font-ibm-plex-mono)', 
-                fontSize: '11.5px', 
-                letterSpacing: '0.1em', 
-                textTransform: 'uppercase',
-                color: 'var(--gold)',
-                marginBottom: '12px'
-              }}>
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                minLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '14px 20px',
-                  background: 'var(--paper)',
-                  border: '1px solid var(--line-strong)',
-                  borderRadius: '6px',
-                  color: 'var(--ink)',
-                  fontFamily: 'var(--font-inter)',
-                  fontSize: '15px',
-                  outline: 'none'
-                }}
-                placeholder="••••••••"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn btn-gold btn-lg"
-              style={{ width: '100%', justifyContent: 'center' }}
-            >
-              {loading ? 'Creating account...' : 'Sign up'}
-            </button>
-          </form>
-
-          <div style={{ marginTop: '32px', textAlign: 'center' }}>
-            <p style={{ color: 'var(--chalk-dim)', fontFamily: 'var(--font-ibm-plex-mono)', fontSize: '12px' }}>
-              Already have an account?{' '}
-              <Link href="/auth/login" style={{ color: 'var(--gold)' }}>
-                Sign in
-              </Link>
-            </p>
           </div>
+
+          <div>
+            <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Department</div>
+            {schoolId && schoolId !== 'other' && departments.length > 0 ? (
+              <>
+                <select
+                  value={departmentId}
+                  onChange={(e) => {
+                    setDepartmentId(e.target.value)
+                    if (e.target.value !== 'other') {
+                      setCustomDepartmentName('')
+                    }
+                  }}
+                  required
+                  style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none', background: '#fff', marginBottom: departmentId === 'other' ? '8px' : '0' }}
+                >
+                  <option value="">Select your department</option>
+                  {departments.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.name} ({dept.code})
+                    </option>
+                  ))}
+                  <option value="other">Other (not listed)</option>
+                </select>
+                {departmentId === 'other' && (
+                  <input
+                    type="text"
+                    value={customDepartmentName}
+                    onChange={(e) => setCustomDepartmentName(e.target.value)}
+                    placeholder="Enter your department name"
+                    required
+                    style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none' }}
+                  />
+                )}
+              </>
+            ) : schoolId === 'other' ? (
+              <input
+                type="text"
+                value={customDepartmentName}
+                onChange={(e) => setCustomDepartmentName(e.target.value)}
+                placeholder="Enter your department name"
+                required
+                style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none' }}
+              />
+            ) : (
+              <select
+                value={departmentId}
+                onChange={(e) => setDepartmentId(e.target.value)}
+                required
+                disabled
+                style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none', background: '#fff', opacity: 0.6 }}
+              >
+                <option value="">Select institution first</option>
+              </select>
+            )}
+          </div>
+
+          <div>
+            <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Password</div>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+              minLength={6}
+              style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none' }}
+            />
+          </div>
+
+          {error && (
+            <div style={{ font: '400 12.5px system-ui,sans-serif', color: 'oklch(55% 0.19 25)', marginTop: '-10px' }}>{error}</div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading || loadingSchools}
+            style={{ background: 'oklch(42% 0.16 258)', color: '#fff', font: '600 14.5px system-ui,sans-serif', padding: '12px', borderRadius: '8px', textAlign: 'center', cursor: loading || loadingSchools ? 'not-allowed' : 'pointer', marginTop: '8px', border: 'none', opacity: loading || loadingSchools ? 0.7 : 1 }}
+          >
+            {loading ? 'Creating account...' : 'Sign up'}
+          </button>
+        </form>
+
+        <div style={{ font: '400 12px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', marginTop: '16px', textAlign: 'center' }}>
+          Already have an account?{' '}
+          <Link href="/auth/login" style={{ color: 'oklch(42% 0.16 258)', textDecoration: 'none' }}>Sign in</Link>
         </div>
+
+        <Link href="/" style={{ font: '600 13px system-ui,sans-serif', color: 'oklch(42% 0.16 258)', cursor: 'pointer', textAlign: 'center', display: 'block', marginTop: '18px', textDecoration: 'none' }}>Back to home</Link>
       </div>
     </div>
   )

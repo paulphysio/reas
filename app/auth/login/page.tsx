@@ -26,146 +26,66 @@ export default function LoginPage() {
     if (error) {
       setError(error.message)
     } else {
-      router.push('/dashboard')
+      router.push('/app')
       router.refresh()
     }
     setLoading(false)
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--ink)', color: 'var(--chalk)' }}>
-      <div className="grain"></div>
-      
-      <nav>
-        <div className="wrap nav-inner">
-          <div className="brand">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="seal">R</div>
-              <div>
-                <div className="brand-name">REAS</div>
-                <span className="brand-sub">Examination System</span>
-              </div>
-            </Link>
-          </div>
-          <div className="nav-links desktop-only">
-            <Link href="/auth/register" className="btn btn-gold">Get started</Link>
-          </div>
-          <div className="nav-links mobile-only">
-            <Link href="/auth/register" className="btn btn-gold" style={{ padding: '10px 16px', fontSize: '13px' }}>Get started</Link>
-          </div>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', background: 'oklch(99% 0.004 258)' }}>
+      <div style={{ width: '100%', maxWidth: '380px', background: '#fff', border: '1px solid oklch(88% 0.02 258)', borderRadius: '14px', padding: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '26px' }}>
+          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'oklch(42% 0.16 258)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', font: '700 16px "Lora",Georgia,serif' }}>R</div>
+          <div style={{ font: '700 19px "Lora",Georgia,serif' }}>Reas</div>
         </div>
-      </nav>
+        <div style={{ font: '700 20px "Lora",Georgia,serif', marginBottom: '6px' }}>Adviser sign in</div>
+        <div style={{ font: '400 13.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', marginBottom: '22px' }}>Only signed-in advisers can access student records and send tools.</div>
 
-      <div className="wrap" style={{ paddingTop: '96px', paddingBottom: '110px' }}>
-        <div style={{ maxWidth: '420px', margin: '0 auto' }}>
-          <p className="eyebrow">Sign in</p>
-          <h1 style={{ marginBottom: '24px' }}>Welcome back</h1>
-          <p style={{ color: 'var(--chalk-dim)', marginBottom: '36px', lineHeight: '1.65' }}>
-            Enter your credentials to access the Result Examination Academic System.
-          </p>
-
-          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            {error && (
-              <div style={{ 
-                padding: '14px 20px', 
-                borderRadius: '6px', 
-                background: 'rgba(192, 57, 43, 0.1)', 
-                border: '1px solid var(--red)',
-                color: 'var(--red)',
-                fontFamily: 'var(--font-ibm-plex-mono)',
-                fontSize: '13px'
-              }}>
-                {error}
-              </div>
-            )}
-
-            <div>
-              <label htmlFor="email" style={{ 
-                display: 'block', 
-                fontFamily: 'var(--font-ibm-plex-mono)', 
-                fontSize: '11.5px', 
-                letterSpacing: '0.1em', 
-                textTransform: 'uppercase',
-                color: 'var(--gold)',
-                marginBottom: '12px'
-              }}>
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '14px 20px',
-                  background: 'var(--paper)',
-                  border: '1px solid var(--line-strong)',
-                  borderRadius: '6px',
-                  color: 'var(--ink)',
-                  fontFamily: 'var(--font-inter)',
-                  fontSize: '15px',
-                  outline: 'none'
-                }}
-                placeholder="you@example.com"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" style={{ 
-                display: 'block', 
-                fontFamily: 'var(--font-ibm-plex-mono)', 
-                fontSize: '11.5px', 
-                letterSpacing: '0.1em', 
-                textTransform: 'uppercase',
-                color: 'var(--gold)',
-                marginBottom: '12px'
-              }}>
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '14px 20px',
-                  background: 'var(--paper)',
-                  border: '1px solid var(--line-strong)',
-                  borderRadius: '6px',
-                  color: 'var(--ink)',
-                  fontFamily: 'var(--font-inter)',
-                  fontSize: '15px',
-                  outline: 'none'
-                }}
-                placeholder="••••••••"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn btn-gold btn-lg"
-              style={{ width: '100%', justifyContent: 'center' }}
-            >
-              {loading ? 'Signing in...' : 'Sign in'}
-            </button>
-          </form>
-
-          <div style={{ marginTop: '32px', textAlign: 'center' }}>
-            <p style={{ color: 'var(--chalk-dim)', fontFamily: 'var(--font-ibm-plex-mono)', fontSize: '12px' }}>
-              Don't have an account?{' '}
-              <Link href="/auth/register" style={{ color: 'var(--gold)' }}>
-                Sign up
-              </Link>
-            </p>
+        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div>
+            <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Work email</div>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@university.edu"
+              required
+              style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none' }}
+            />
           </div>
+
+          <div>
+            <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Password</div>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+              style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none' }}
+            />
+          </div>
+
+          {error && (
+            <div style={{ font: '400 12.5px system-ui,sans-serif', color: 'oklch(55% 0.19 25)', marginTop: '-10px' }}>{error}</div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            style={{ background: 'oklch(42% 0.16 258)', color: '#fff', font: '600 14.5px system-ui,sans-serif', padding: '12px', borderRadius: '8px', textAlign: 'center', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '8px', border: 'none' }}
+          >
+            {loading ? 'Signing in...' : 'Sign in'}
+          </button>
+        </form>
+
+        <div style={{ font: '400 12px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', marginTop: '16px', textAlign: 'center' }}>
+          Don't have an account?{' '}
+          <Link href="/auth/register" style={{ color: 'oklch(42% 0.16 258)', textDecoration: 'none' }}>Sign up</Link>
         </div>
+
+        <Link href="/" style={{ font: '600 13px system-ui,sans-serif', color: 'oklch(42% 0.16 258)', cursor: 'pointer', textAlign: 'center', display: 'block', marginTop: '18px', textDecoration: 'none' }}>Back to home</Link>
       </div>
     </div>
   )

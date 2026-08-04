@@ -22,12 +22,11 @@ export default async function ChatPage() {
   }
 
   return (
-    <div style={{ paddingTop: '48px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '48px' }}>
+    <div style={{ maxWidth: 1120, margin: '0 auto', padding: '0 40px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '32px' }}>
         <div>
-          <p className="eyebrow">Chat</p>
-          <h1 style={{ marginBottom: '8px' }}>Conversations</h1>
-          <p style={{ color: 'var(--chalk-dim)', lineHeight: '1.65' }}>
+          <h1 style={{ font: '700 34px Lora,Georgia,serif', marginBottom: '8px' }}>Conversations</h1>
+          <p style={{ color: 'var(--reas-muted)', lineHeight: '1.6', fontSize: '15px' }}>
             Communicate with colleagues in real-time
           </p>
         </div>
@@ -40,59 +39,68 @@ export default async function ChatPage() {
               key={conv.conversation_id}
               href={`/dashboard/chat/${conv.conversation_id}`}
               style={{ 
-                background: 'var(--paper)', 
-                borderRadius: '6px', 
-                padding: '24px 32px',
-                color: 'var(--ink)',
-                boxShadow: '0 30px 60px -24px rgba(0, 0, 0, 0.5)',
+                background: 'var(--reas-card)', 
+                borderRadius: '12px', 
+                padding: '20px 24px',
+                border: '1px solid var(--reas-border)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '20px',
+                gap: '16px',
                 textDecoration: 'none',
-                transition: 'transform 0.18s ease, box-shadow 0.18s ease'
+                transition: 'transform 0.18s ease'
               }}
             >
               <div style={{ 
-                width: '48px', 
-                height: '48px', 
-                background: 'var(--gold-soft)', 
-                borderRadius: '6px', 
+                width: '40px', 
+                height: '40px', 
+                background: 'oklch(94% 0.015 258)', 
+                borderRadius: '8px', 
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center' 
               }}>
-                <MessageSquare style={{ width: '24px', height: '24px', color: '#8a6b1e' }} />
+                <MessageSquare style={{ width: '20px', height: '20px', color: 'oklch(42% 0.16 258)' }} />
               </div>
               <div style={{ flex: 1 }}>
-                <h3 style={{ fontFamily: 'var(--font-fraunces)', fontWeight: '600', fontSize: '18px', color: 'var(--ink)', marginBottom: '4px' }}>
+                <h3 style={{ font: '600 16px system-ui,sans-serif', marginBottom: '4px' }}>
                   Conversation
                 </h3>
-                <p style={{ color: '#7a7264', fontSize: '13px' }}>
+                <p style={{ color: 'var(--reas-muted)', fontSize: '13px' }}>
                   {new Date(conv.conversations?.created_at).toLocaleDateString()}
                 </p>
               </div>
-              <div style={{ color: '#7a7264' }}>→</div>
+              <div style={{ color: 'var(--reas-muted)' }}>→</div>
             </Link>
           ))}
         </div>
       ) : (
         <div style={{ 
-          background: 'var(--paper)', 
-          borderRadius: '6px', 
+          background: 'var(--reas-card)', 
+          borderRadius: '12px', 
           padding: '64px 38px',
-          color: 'var(--ink)',
-          boxShadow: '0 30px 60px -24px rgba(0, 0, 0, 0.5)',
+          border: '1px solid var(--reas-border)',
           textAlign: 'center'
         }}>
-          <MessageSquare style={{ width: '64px', height: '64px', color: '#7a7264', margin: '0 auto 24px' }} />
-          <h3 style={{ fontFamily: 'var(--font-fraunces)', fontWeight: '600', fontSize: '20px', color: 'var(--ink)', marginBottom: '12px' }}>
+          <MessageSquare style={{ width: '48px', height: '48px', color: 'var(--reas-muted)', margin: '0 auto 16px' }} />
+          <h3 style={{ font: '600 16px system-ui,sans-serif', marginBottom: '8px' }}>
             No conversations yet
           </h3>
-          <p style={{ color: '#7a7264', marginBottom: '24px', fontSize: '14px' }}>
+          <p style={{ color: 'var(--reas-muted)', marginBottom: '20px', fontSize: '14px' }}>
             Start a new conversation with a colleague
           </p>
-          <button className="btn btn-gold btn-lg" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-            <Plus style={{ width: '20px', height: '20px' }} />
+          <button style={{ 
+            display: 'inline-flex', 
+            alignItems: 'center', 
+            gap: '8px',
+            background: 'oklch(42% 0.16 258)',
+            color: '#fff',
+            padding: '10px 20px',
+            borderRadius: '8px',
+            border: 'none',
+            cursor: 'pointer',
+            font: '600 14px system-ui,sans-serif'
+          }}>
+            <Plus style={{ width: '18px', height: '18px' }} />
             New Conversation
           </button>
         </div>
