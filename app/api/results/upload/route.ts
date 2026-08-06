@@ -16,14 +16,26 @@ export async function POST(req: Request) {
   const semester = formData.get('semester') as Semester
 
   if (!file) return NextResponse.json({ error: 'No file' }, { status: 400 })
-  if (!file.name.endsWith('.xlsx')) {
-    return NextResponse.json({ error: 'File must be .xlsx format' }, { status: 400 })
+  if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.csv')) {
+    return NextResponse.json({ error: 'File must be .xlsx or .csv format' }, { status: 400 })
   }
 
   const buffer = await file.arrayBuffer()
   const { columns, data } = parseExcel(buffer)
 
-  // File is never written to disk → auto "deleted" after processing
+  // Transform data to match the new UI format
+  const transformedData = data.map((row: any, index: number) => ({
+    id: index,
+    name: row.Name || row.name || 'Unknown',
+    email: row.Email || row.email || '',
+    document: row.Document || row.document || 'Result',
+    note: row.Note || row.note || '',
+    validation: (row.Email || row.email) ? 'ready' : 'missing-email',
+    result: undefined,
+    failReason: ''
+  }))
+
+  // Save to database but don't keep file on disk
   const { data: sheet, error } = await supabase
     .from('result_sheets')
     .insert({
@@ -34,11 +46,11 @@ export async function POST(req: Request) {
       semester,
       filename: file.name,
       columns,
-      data,
+      data: transformedData,
     })
     .select()
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(sheet)
+  return NextResponse.json({ ...sheet, rows: transformedData })
 }

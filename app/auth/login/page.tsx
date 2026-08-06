@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -26,15 +25,15 @@ export default function LoginPage() {
     if (error) {
       setError(error.message)
     } else {
-      router.push('/app')
+      router.push('/dashboard')
       router.refresh()
     }
     setLoading(false)
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', background: 'oklch(99% 0.004 258)' }}>
-      <div style={{ width: '100%', maxWidth: '380px', background: '#fff', border: '1px solid oklch(88% 0.02 258)', borderRadius: '14px', padding: '24px' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', background: 'oklch(99% 0.004 258)' }}>
+      <div style={{ width: '380px', maxWidth: '100%', background: '#fff', border: '1px solid oklch(88% 0.02 258)', borderRadius: '14px', padding: '36px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '26px' }}>
           <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'oklch(42% 0.16 258)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', font: '700 16px "Lora",Georgia,serif' }}>R</div>
           <div style={{ font: '700 19px "Lora",Georgia,serif' }}>Reas</div>
@@ -51,7 +50,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@university.edu"
               required
-              style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none' }}
+              style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none', marginBottom: '14px' }}
             />
           </div>
 
@@ -61,14 +60,14 @@ export default function LoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="•••••••••"
               required
-              style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none' }}
+              style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none', marginBottom: '8px' }}
             />
           </div>
 
           {error && (
-            <div style={{ font: '400 12.5px system-ui,sans-serif', color: 'oklch(55% 0.19 25)', marginTop: '-10px' }}>{error}</div>
+            <div style={{ font: '400 12.5px system-ui,sans-serif', color: 'oklch(55% 0.19 25)', marginBottom: '10px' }}>{error}</div>
           )}
 
           <button
@@ -81,11 +80,12 @@ export default function LoginPage() {
         </form>
 
         <div style={{ font: '400 12px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', marginTop: '16px', textAlign: 'center' }}>
-          Don't have an account?{' '}
-          <Link href="/auth/register" style={{ color: 'oklch(42% 0.16 258)', textDecoration: 'none' }}>Sign up</Link>
+          Demo access — any work email and a password of 4+ characters.
         </div>
 
-        <Link href="/" style={{ font: '600 13px system-ui,sans-serif', color: 'oklch(42% 0.16 258)', cursor: 'pointer', textAlign: 'center', display: 'block', marginTop: '18px', textDecoration: 'none' }}>Back to home</Link>
+        <div onClick={() => router.push('/')} style={{ font: '600 13px system-ui,sans-serif', color: 'oklch(42% 0.16 258)', cursor: 'pointer', textAlign: 'center', display: 'block', marginTop: '18px', textDecoration: 'none' }}>
+          Back to home
+        </div>
       </div>
     </div>
   )

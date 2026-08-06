@@ -1,133 +1,162 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { LogOut, LayoutDashboard, FileSpreadsheet, MessageSquare, User, Mail } from 'lucide-react'
+'use client'
 
-export default async function DashboardLayout({
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(true)
+  const [rightSidebarOpen, setRightSidebarOpen] = useState(true)
+  const router = useRouter()
+  const supabase = createClient()
 
-  if (!user) {
-    redirect('/auth/login')
-  }
+  useEffect(() => {
+    fetchUser()
+  }, [])
 
-  let profile = null
-  try {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single()
-    profile = data
-  } catch (error) {
-    profile = {
-      full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
-      department: 'PET',
+  const fetchUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      router.push('/auth/login')
+      return
     }
+
+    setUser(user)
+
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+      setProfile(data)
+    } catch (error) {
+      setProfile({
+        full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Jordan Blake',
+      })
+    }
+    setLoading(false)
   }
+
+  if (loading) {
+    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>Loading...</div>
+  }
+
+  const advisorInitials = (profile?.full_name || '').trim().split(/\s+/).filter(Boolean).map((w: string) => w[0]).slice(0, 2).join('').toUpperCase() || 'A'
+  const advisorName = profile?.full_name || 'Jordan Blake'
+  const advisorDepartment = profile?.department || 'Petroleum Engineering'
+  const advisorSchool = profile?.school || 'Northbridge University'
+
+  const navItems = [
+    { key: 'dashboard', label: 'Dashboard', href: '/dashboard' },
+    { key: 'send', label: 'Send Result', href: '/dashboard/send' },
+    { key: 'log', label: 'Session Log', href: '/dashboard/log' },
+    { key: 'profile', label: 'Profile', href: '/dashboard/profile' },
+  ]
+
+  const currentPath = '/dashboard'
 
   return (
-    <div className="min-h-screen" style={{ background: 'oklch(99% 0.004 258)', color: 'oklch(20% 0.02 258)', '--reas-text': 'oklch(20% 0.02 258)', '--reas-card': '#fff', '--reas-bg': 'oklch(99% 0.004 258)', '--reas-border': 'oklch(88% 0.02 258)', '--reas-muted': 'oklch(45% 0.02 258)', '--reas-divider': 'oklch(94% 0.015 258)', '--reas-tablehead': 'oklch(94% 0.015 258)' } as React.CSSProperties}>
-      <nav className="sticky top-0 z-20" style={{ background: 'oklch(99% 0.004 258 / 0.92)', backdropFilter: 'blur(8px)', borderBottom: '1px solid oklch(88% 0.02 258)' }}>
-        <div className="wrap nav-inner px-5 md:px-12" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 0' }}>
-          <div className="brand">
-            <Link href="/" className="flex items-center gap-2" style={{ textDecoration: 'none', color: 'var(--reas-text)' }}>
-              <div className="seal" style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'oklch(42% 0.16 258)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', font: '700 14px Lora,Georgia,serif' }}>R</div>
-              <div>
-                <div className="brand-name" style={{ font: '700 16px Lora,Georgia,serif', letterSpacing: '-0.01em' }}>REAS</div>
-                <span className="brand-sub" style={{ font: '400 11px system-ui,sans-serif', color: 'var(--reas-muted)' }}>Dashboard</span>
-              </div>
-            </Link>
-          </div>
-          <div className="nav-links desktop-only" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Link
-              href="/dashboard"
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '6px', textDecoration: 'none', color: 'var(--reas-text)', font: '600 13px system-ui,sans-serif' }}
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              Dashboard
-            </Link>
-            <Link
-              href="/dashboard/results"
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '6px', textDecoration: 'none', color: 'var(--reas-text)', font: '600 13px system-ui,sans-serif' }}
-            >
-              <FileSpreadsheet className="w-4 h-4" />
-              Results
-            </Link>
-            <Link
-              href="/dashboard/mail"
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '6px', textDecoration: 'none', color: 'var(--reas-text)', font: '600 13px system-ui,sans-serif' }}
-            >
-              <Mail className="w-4 h-4" />
-              Mail Automation
-            </Link>
-            <Link
-              href="/dashboard/chat"
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '6px', textDecoration: 'none', color: 'var(--reas-text)', font: '600 13px system-ui,sans-serif' }}
-            >
-              <MessageSquare className="w-4 h-4" />
-              Chat
-            </Link>
-          </div>
-          <div className="nav-links desktop-only" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Link
-              href="/dashboard/profile"
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '6px', textDecoration: 'none', color: 'var(--reas-text)', font: '600 13px system-ui,sans-serif' }}
-            >
-              <User className="w-5 h-5" />
-              <span style={{ fontSize: '12px' }}>
-                {profile?.full_name || 'Profile'}
-              </span>
-            </Link>
-            <form action="/auth/logout" method="POST">
-              <button type="submit" style={{ background: 'none', border: 'none', padding: '8px', cursor: 'pointer', color: 'var(--reas-text)' }}>
-                <LogOut className="w-5 h-5" />
-              </button>
-            </form>
-          </div>
-          <div className="nav-links mobile-only">
-            <form action="/auth/logout" method="POST">
-              <button type="submit" style={{ background: 'none', border: 'none', padding: '8px', cursor: 'pointer', color: 'var(--reas-text)' }}>
-                <LogOut className="w-5 h-5" />
-              </button>
-            </form>
-          </div>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'oklch(99% 0.004 258)', color: 'oklch(22% 0.035 258)', '--reas-text': 'oklch(22% 0.035 258)', '--reas-card': '#fff', '--reas-bg': 'oklch(99% 0.004 258)', '--reas-border': 'oklch(88% 0.02 258)', '--reas-muted': 'oklch(45% 0.02 258)', '--reas-divider': 'oklch(94% 0.015 258)', '--reas-tablehead': 'oklch(96% 0.015 258)' } as React.CSSProperties}>
+      {/* Mobile Header */}
+      <div className="md:hidden" style={{ position: 'sticky', top: 0, zIndex: 35, background: 'oklch(28% 0.09 258)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', flex: 'none' }}>
+        <div onClick={() => setLeftSidebarOpen(!leftSidebarOpen)} style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'rgba(255,255,255,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', font: '600 16px system-ui,sans-serif', flex: 'none' }}>☰</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+          <div style={{ width: '24px', height: '24px', borderRadius: '6px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'oklch(28% 0.09 258)', font: '700 12px "Lora",Georgia,serif', flex: 'none' }}>R</div>
+          <div style={{ font: '700 15px "Lora",Georgia,serif' }}>Reas</div>
         </div>
-      </nav>
-
-      {/* Mobile navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50" style={{ background: 'oklch(99% 0.004 258 / 0.92)', backdropFilter: 'blur(8px)', borderTop: '1px solid oklch(88% 0.02 258)' }}>
-        <div className="flex justify-around py-3">
-          <Link href="/dashboard" className="flex flex-col items-center" style={{ color: 'var(--reas-muted)' }}>
-            <LayoutDashboard className="w-5 h-5" />
-            <span style={{ fontSize: '10px', marginTop: '4px' }}>Dashboard</span>
-          </Link>
-          <Link href="/dashboard/results" className="flex flex-col items-center" style={{ color: 'var(--reas-muted)' }}>
-            <FileSpreadsheet className="w-5 h-5" />
-            <span style={{ fontSize: '10px', marginTop: '4px' }}>Results</span>
-          </Link>
-          <Link href="/dashboard/mail" className="flex flex-col items-center" style={{ color: 'var(--reas-muted)' }}>
-            <Mail className="w-5 h-5" />
-            <span style={{ fontSize: '10px', marginTop: '4px' }}>Mail</span>
-          </Link>
-          <Link href="/dashboard/chat" className="flex flex-col items-center" style={{ color: 'var(--reas-muted)' }}>
-            <MessageSquare className="w-5 h-5" />
-            <span style={{ fontSize: '10px', marginTop: '4px' }}>Chat</span>
-          </Link>
-          <Link href="/dashboard/profile" className="flex flex-col items-center" style={{ color: 'var(--reas-muted)' }}>
-            <User className="w-5 h-5" />
-            <span style={{ fontSize: '10px', marginTop: '4px' }}>Profile</span>
-          </Link>
+        <div onClick={() => setRightSidebarOpen(!rightSidebarOpen)} style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', font: '700 12px system-ui,sans-serif', flex: 'none' }}>
+          {advisorInitials}
         </div>
       </div>
 
-      <main style={{ paddingTop: '48px', paddingBottom: '100px' }}>
-        {children}
-      </main>
+      {/* Desktop Header with toggles */}
+      {/* <div className="hidden md:flex" style={{ position: 'sticky', top: 0, zIndex: 35, background: '#fff', borderBottom: '1px solid oklch(88% 0.02 258)', padding: '12px 20px', alignItems: 'center', justifyContent: 'space-between', flex: 'none' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div onClick={() => setLeftSidebarOpen(!leftSidebarOpen)} style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'oklch(94% 0.015 258)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', font: '600 14px system-ui,sans-serif', flex: 'none' }}>☰</div>
+          <div style={{ font: '700 16px "Lora",Georgia,serif' }}>Reas Dashboard</div>
+        </div>
+        <div onClick={() => setRightSidebarOpen(!rightSidebarOpen)} style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'oklch(94% 0.015 258)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', font: '600 13px system-ui,sans-serif', flex: 'none' }}>
+          {advisorInitials}
+        </div>
+      </div> */}
+
+      <div style={{ display: 'flex', flex: 1, minHeight: 0, position: 'relative' }}>
+        {/* Desktop Sidebar */}
+        {leftSidebarOpen && (
+          <div className="hidden md:block" style={{ flex: 'none', background: 'oklch(28% 0.09 258)', color: '#fff', display: 'flex', flexDirection: 'column', padding: '26px 18px', width: '236px', position: 'sticky', top: 0, height: '100vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0 6px 28px', cursor: 'pointer' }}>
+              <div style={{ width: '30px', height: '30px', borderRadius: '7px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'oklch(28% 0.09 258)', font: '700 15px "Lora",Georgia,serif', flex: 'none' }}>R</div>
+              <div style={{ font: '700 17px "Lora",Georgia,serif', whiteSpace: 'nowrap' }}>Reas</div>
+            </div>
+
+            {navItems.map((nav) => {
+              const isActive = currentPath === nav.href || (nav.href !== '/dashboard' && currentPath.startsWith(nav.href))
+              return (
+                <Link key={nav.key} href={nav.href} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '11px 12px', borderRadius: '8px', cursor: 'pointer', marginBottom: '4px', background: isActive ? 'rgba(255,255,255,0.14)' : 'transparent', textDecoration: 'none', color: '#fff' }}>
+                  <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: isActive ? '#fff' : 'rgba(255,255,255,0.4)', flex: 'none' }}></span>
+                  <span style={{ font: '600 14px system-ui,sans-serif', whiteSpace: 'nowrap' }}>{nav.label}</span>
+                </Link>
+              )
+            })}
+
+            <form action="/auth/logout" method="POST" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '11px 12px', borderRadius: '8px', cursor: 'pointer', marginBottom: '4px', background: 'transparent', border: 'none', color: '#fff' }}>
+              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'rgba(255,255,255,0.4)', flex: 'none' }}></span>
+              <span style={{ font: '600 14px system-ui,sans-serif', whiteSpace: 'nowrap' }}>Logout</span>
+            </form>
+
+            <div style={{ flex: 1 }}></div>
+
+            <div style={{ width: '100%', height: '120px', marginBottom: '14px', borderRadius: '12px', background: 'rgba(255,255,255,0.08)', border: '1px dashed rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', font: '400 12px system-ui,sans-serif', color: 'rgba(255,255,255,0.6)' }}>
+              Illustration
+            </div>
+            <div style={{ background: '#fff', color: 'oklch(28% 0.09 258)', font: '600 13.5px system-ui,sans-serif', textAlign: 'center', padding: '10px', borderRadius: '8px', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
+              Visit website
+            </div>
+          </div>
+        )}
+
+        {/* Main Content */}
+        <div style={{ flex: 1, minWidth: 0, background: 'var(--reas-bg)', padding: 'clamp(16px,4vw,34px) clamp(16px,4vw,40px)', overflow: 'auto' }}>
+          <main style={{ paddingBottom: '40px' }}>
+            {children}
+          </main>
+        </div>
+
+        {/* Right Panel */}
+        {rightSidebarOpen && (
+          <div className="hidden lg:block" style={{ flex: 'none', background: 'oklch(32% 0.1 258)', color: '#fff', padding: '26px 22px', overflow: 'auto', width: '264px', position: 'sticky', top: 0, height: '100vh' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginBottom: '22px' }} className="md:hidden">
+              <Link href="/dashboard/profile" style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(255,255,255,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', font: '600 13px system-ui,sans-serif', flex: 'none', textDecoration: 'none', color: '#fff' }}>?</Link>
+              <Link href="/dashboard/profile" style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(255,255,255,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', font: '600 13px system-ui,sans-serif', flex: 'none', textDecoration: 'none', color: '#fff' }}>⚙</Link>
+            </div>
+
+            <div style={{ textAlign: 'center', paddingTop: '4px' }}>
+              <div style={{ width: '84px', height: '84px', margin: '0 auto 14px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)', border: '1px dashed rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', font: '400 10px system-ui,sans-serif', color: 'rgba(255,255,255,0.6)', textAlign: 'center' }}>
+                Photo
+              </div>
+              <div style={{ font: '700 16px "Lora",Georgia,serif' }}>{advisorName}</div>
+              <div style={{ font: '400 12.5px system-ui,sans-serif', opacity: 0.85, marginTop: '2px' }}>Course Adviser</div>
+              <div style={{ font: '400 12px system-ui,sans-serif', opacity: 0.7, marginTop: '6px' }}>{advisorDepartment} · {advisorSchool}</div>
+            </div>
+
+            <div style={{ height: '1px', background: 'rgba(255,255,255,0.18)', margin: '24px 0' }}></div>
+
+            <div style={{ font: '700 15px "Lora",Georgia,serif', marginBottom: '14px' }}>Notifications</div>
+            <div style={{ font: '400 13px system-ui,sans-serif', opacity: '0.75' }}>
+              No notifications yet.
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

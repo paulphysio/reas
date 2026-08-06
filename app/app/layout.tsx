@@ -267,9 +267,9 @@ export default function AppLayout({
   }, [selectedSchoolId])
 
   const navItems = [
-    { key: 'dashboard', label: 'Dashboard', href: '/app' },
-    { key: 'send', label: 'Send Result', href: '/app/send' },
-    { key: 'log', label: 'Session Log', href: '/app/log' },
+    { key: 'dashboard', label: 'Dashboard', href: '/dashboard' },
+    { key: 'send', label: 'Send Result', href: '/dashboard/send' },
+    { key: 'log', label: 'Session Log', href: '/dashboard/log' },
     { key: 'feedback', label: 'Feedback', href: '/app/feedback' },
     { key: 'help', label: 'Help & Support', href: '/app/help' },
     { key: 'logout', label: 'Logout', onClick: handleLogout },
@@ -278,17 +278,17 @@ export default function AppLayout({
   type NavItem = typeof navItems[number]
 
   const PAGE_TITLES: Record<string, string> = {
-    '/app': 'Dashboard',
-    '/app/send': 'Send Result',
-    '/app/log': 'Session Log',
+    '/dashboard': 'Dashboard',
+    '/dashboard/send': 'Send Result',
+    '/dashboard/log': 'Session Log',
     '/app/feedback': 'Feedback',
     '/app/help': 'Help & Support',
   }
 
   const getActiveKey = () => {
-    if (pathname === '/app') return 'dashboard'
-    if (pathname === '/app/send') return 'send'
-    if (pathname === '/app/log') return 'log'
+    if (pathname === '/dashboard') return 'dashboard'
+    if (pathname === '/dashboard/send') return 'send'
+    if (pathname === '/dashboard/log') return 'log'
     if (pathname === '/app/feedback') return 'feedback'
     if (pathname === '/app/help') return 'help'
     return 'dashboard'
@@ -418,7 +418,7 @@ export default function AppLayout({
 
       {/* Right Sidebar */}
       <div style={{ width: '264px', flex: 'none', background: 'oklch(32% 0.1 258)', color: '#fff', padding: '26px 22px', overflow: 'auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginBottom: '22px' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginBottom: '22px' }} className="md:hidden">
           <Link href="/app/help" style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(255,255,255,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', font: '600 13px system-ui,sans-serif', flex: 'none', textDecoration: 'none', color: '#fff' }}>?</Link>
           <div onClick={() => setSettingsOpen(true)} style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(255,255,255,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', font: '600 13px system-ui,sans-serif', flex: 'none', cursor: 'pointer' }}>⚙</div>
         </div>

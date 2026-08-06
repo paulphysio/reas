@@ -4,38 +4,85 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { User, Mail, Building2, Save } from 'lucide-react'
 
+interface School {
+  id: string
+  name: string
+  state: string
+}
+
+interface Department {
+  id: string
+  code: string
+  name: string
+}
+
 export default function ProfilePage() {
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
-  const [department, setDepartment] = useState('')
+  const [schoolId, setSchoolId] = useState('')
+  const [customSchool, setCustomSchool] = useState('')
+  const [departmentId, setDepartmentId] = useState('')
+  const [customDepartment, setCustomDepartment] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [schools, setSchools] = useState<School[]>([])
+  const [departments, setDepartments] = useState<Department[]>([])
+  const [loadingSchools, setLoadingSchools] = useState(false)
   const supabase = createClient()
 
   useEffect(() => {
-    const loadProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        setEmail(user.email || '')
-        setFullName(user.user_metadata?.full_name || '')
-        
-        try {
-          const { data } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single()
-          if (data) {
-            setFullName(data.full_name || '')
-            setDepartment(data.department || '')
+    loadProfile()
+    loadSchools()
+  }, [supabase])
+
+  useEffect(() => {
+    if (schoolId && schoolId !== 'other') {
+      loadDepartments(schoolId)
+    } else {
+      setDepartments([])
+    }
+  }, [schoolId])
+
+  const loadSchools = async () => {
+    setLoadingSchools(true)
+    const { data } = await supabase.from('schools').select('id, name, state').order('name')
+    if (data) setSchools(data)
+    setLoadingSchools(false)
+  }
+
+  const loadDepartments = async (schoolId: string) => {
+    const { data } = await supabase.from('departments').select('id, code, name').eq('school_id', schoolId).order('name')
+    if (data) setDepartments(data)
+  }
+
+  const loadProfile = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      setEmail(user.email || '')
+      setFullName(user.user_metadata?.full_name || '')
+      
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('full_name, school_id, custom_school_name, department_id, custom_department_name')
+          .eq('id', user.id)
+          .single()
+        if (data) {
+          setFullName(data.full_name || '')
+          setSchoolId(data.school_id || '')
+          setCustomSchool(data.custom_school_name || '')
+          setDepartmentId(data.department_id || '')
+          setCustomDepartment(data.custom_department_name || '')
+          
+          if (data.school_id) {
+            loadDepartments(data.school_id)
           }
-        } catch (error) {
-          console.log('Profile not found')
         }
+      } catch (error) {
+        console.log('Profile not found')
       }
     }
-    loadProfile()
-  }, [supabase])
+  }
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -46,14 +93,33 @@ export default function ProfilePage() {
     if (!user) return
 
     try {
+      const updateData: any = { full_name: fullName }
+
+      if (schoolId === 'other') {
+        updateData.custom_school_name = customSchool.trim()
+        updateData.school_id = null
+      } else if (schoolId) {
+        updateData.school_id = schoolId
+        updateData.custom_school_name = null
+      }
+
+      if (schoolId !== 'other' && departmentId === 'other') {
+        updateData.custom_department_name = customDepartment.trim()
+        updateData.department_id = null
+      } else if (departmentId) {
+        updateData.department_id = departmentId
+        updateData.custom_department_name = null
+      }
+
+      if (schoolId === 'other' && customDepartment.trim()) {
+        updateData.custom_department_name = customDepartment.trim()
+        updateData.department_id = null
+      }
+
       const { error } = await supabase
         .from('profiles')
-        .upsert({
-          id: user.id,
-          full_name: fullName,
-          department,
-          email: user.email,
-        })
+        .update(updateData)
+        .eq('id', user.id)
 
       if (error) throw error
 
@@ -165,6 +231,74 @@ export default function ProfilePage() {
           </div>
 
           <div>
+            <label htmlFor="school" style={{ 
+              display: 'block', 
+              font: '600 11px system-ui,sans-serif', 
+              letterSpacing: '0.05em', 
+              textTransform: 'uppercase',
+              color: 'var(--reas-muted)',
+              marginBottom: '8px'
+            }}>
+              Institution
+            </label>
+            {loadingSchools ? (
+              <div style={{ font: '400 13px system-ui,sans-serif', color: 'var(--reas-muted)', padding: '10px 12px' }}>Loading institutions...</div>
+            ) : (
+              <>
+                <select
+                  id="school"
+                  value={schoolId}
+                  onChange={(e) => {
+                    setSchoolId(e.target.value)
+                    if (e.target.value !== 'other') {
+                      setCustomSchool('')
+                    }
+                  }}
+                  disabled={loading}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    background: 'var(--reas-card)',
+                    border: '1px solid var(--reas-border)',
+                    borderRadius: '8px',
+                    color: 'var(--reas-text)',
+                    font: '400 14px system-ui,sans-serif',
+                    outline: 'none',
+                    marginBottom: schoolId === 'other' ? '8px' : '0'
+                  }}
+                >
+                  <option value="">Select your institution</option>
+                  {schools.map((school) => (
+                    <option key={school.id} value={school.id}>
+                      {school.name} ({school.state})
+                    </option>
+                  ))}
+                  <option value="other">Other (outside Nigeria)</option>
+                </select>
+                {schoolId === 'other' && (
+                  <input
+                    type="text"
+                    value={customSchool}
+                    onChange={(e) => setCustomSchool(e.target.value)}
+                    disabled={loading}
+                    placeholder="Enter your institution name"
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      background: 'var(--reas-card)',
+                      border: '1px solid var(--reas-border)',
+                      borderRadius: '8px',
+                      color: 'var(--reas-text)',
+                      font: '400 14px system-ui,sans-serif',
+                      outline: 'none'
+                    }}
+                  />
+                )}
+              </>
+            )}
+          </div>
+
+          <div>
             <label htmlFor="department" style={{ 
               display: 'block', 
               font: '600 11px system-ui,sans-serif', 
@@ -175,15 +309,68 @@ export default function ProfilePage() {
             }}>
               Department
             </label>
-            <div style={{ position: 'relative' }}>
+            {schoolId && schoolId !== 'other' && departments.length > 0 ? (
+              <>
+                <select
+                  id="department"
+                  value={departmentId}
+                  onChange={(e) => {
+                    setDepartmentId(e.target.value)
+                    if (e.target.value !== 'other') {
+                      setCustomDepartment('')
+                    }
+                  }}
+                  disabled={loading}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    background: 'var(--reas-card)',
+                    border: '1px solid var(--reas-border)',
+                    borderRadius: '8px',
+                    color: 'var(--reas-text)',
+                    font: '400 14px system-ui,sans-serif',
+                    outline: 'none',
+                    marginBottom: departmentId === 'other' ? '8px' : '0'
+                  }}
+                >
+                  <option value="">Select your department</option>
+                  {departments.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.name} ({dept.code})
+                    </option>
+                  ))}
+                  <option value="other">Other (not listed)</option>
+                </select>
+                {departmentId === 'other' && (
+                  <input
+                    type="text"
+                    value={customDepartment}
+                    onChange={(e) => setCustomDepartment(e.target.value)}
+                    disabled={loading}
+                    placeholder="Enter your department name"
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      background: 'var(--reas-card)',
+                      border: '1px solid var(--reas-border)',
+                      borderRadius: '8px',
+                      color: 'var(--reas-text)',
+                      font: '400 14px system-ui,sans-serif',
+                      outline: 'none'
+                    }}
+                  />
+                )}
+              </>
+            ) : schoolId === 'other' ? (
               <input
-                id="department"
                 type="text"
-                value={department}
-                onChange={(e) => setDepartment(e.target.value)}
+                value={customDepartment}
+                onChange={(e) => setCustomDepartment(e.target.value)}
+                disabled={loading}
+                placeholder="Enter your department name"
                 style={{
                   width: '100%',
-                  padding: '10px 12px 10px 40px',
+                  padding: '10px 12px',
                   background: 'var(--reas-card)',
                   border: '1px solid var(--reas-border)',
                   borderRadius: '8px',
@@ -192,8 +379,25 @@ export default function ProfilePage() {
                   outline: 'none'
                 }}
               />
-              <Building2 style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '18px', height: '18px', color: 'var(--reas-muted)' }} />
-            </div>
+            ) : (
+              <select
+                value={departmentId}
+                disabled
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  background: 'oklch(94% 0.015 258)',
+                  border: '1px solid var(--reas-border)',
+                  borderRadius: '8px',
+                  color: 'var(--reas-muted)',
+                  font: '400 14px system-ui,sans-serif',
+                  outline: 'none',
+                  cursor: 'not-allowed'
+                }}
+              >
+                <option value="">Select institution first</option>
+              </select>
+            )}
           </div>
 
           <button

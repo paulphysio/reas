@@ -94,22 +94,20 @@ export async function POST(request: NextRequest) {
         }
 
         try {
-          // Build email body with all columns
+          // Build email body with the new UI structure
           let bodyContent = `<p>Dear ${name},</p>`
           bodyContent += `<p>Your ${semester} ${year} advising record for ${session} is below:</p>`
           bodyContent += `<table style="border-collapse: collapse; width: 100%; margin: 20px 0;">`
-          
-          columns.forEach((col: string) => {
-            if (col !== emailColumn) {
-              bodyContent += `
-                <tr style="border-bottom: 1px solid #eee;">
-                  <td style="padding: 8px; font-weight: 600;">${col}</td>
-                  <td style="padding: 8px;">${row[col] || ''}</td>
-                </tr>
-              `
-            }
-          })
-          
+          bodyContent += `
+            <tr style="border-bottom: 1px solid #eee;">
+              <td style="padding: 8px; font-weight: 600;">Document</td>
+              <td style="padding: 8px;">${row.document || 'Result'}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #eee;">
+              <td style="padding: 8px; font-weight: 600;">Note</td>
+              <td style="padding: 8px;">${row.note || ''}</td>
+            </tr>
+          `
           bodyContent += `</table>`
           
           if (comment) {
@@ -143,8 +141,8 @@ export async function POST(request: NextRequest) {
               result_sheet_id: sheet_id,
               recipient_email: email,
               student_name: name,
-              document: JSON.stringify(row),
-              note: comment || '',
+              document: row.document || 'Result',
+              note: row.note || comment || '',
               status: 'sent',
             })
             console.log(`[SEND-EMAILS] Logged successful email to database`)
@@ -160,8 +158,8 @@ export async function POST(request: NextRequest) {
               result_sheet_id: sheet_id,
               recipient_email: email,
               student_name: name,
-              document: JSON.stringify(row),
-              note: comment || '',
+              document: row.document || 'Result',
+              note: row.note || comment || '',
               status: 'failed',
               error: error instanceof Error ? error.message : 'Unknown error',
             })
@@ -178,13 +176,14 @@ export async function POST(request: NextRequest) {
 
     console.log('[SEND-EMAILS] Results:', { sent, failed, total: rows.length })
 
-    // Update result sheet with counts
+    // Update result sheet with counts and signature/comment
     if (sheet_id) {
       console.log('[SEND-EMAILS] Updating result sheet counts')
       await supabase
         .from('result_sheets')
         .select('id')
         .eq('id', sheet_id)
+        .select('id, signature, comment')
         .single()
         .then(({ data: sheet }) => {
           if (sheet) {
@@ -201,6 +200,8 @@ export async function POST(request: NextRequest) {
                   .update({ 
                     sent_count: sentCount,
                     failed_count: failedCount,
+                    signature: signature || sheet.signature,
+                    comment: comment || sheet.comment,
                   })
                   .eq('id', sheet_id)
               })
@@ -210,9 +211,9 @@ export async function POST(request: NextRequest) {
 
     const detailedResults = results.map((r, i) => {
       if (r.status === 'fulfilled') {
-        return r.value
+        return { id: rows[i].id, status: r.value.status, error: r.value.reason || '' }
       }
-      return { rowId: rows[i].id, status: 'failed', reason: 'Promise rejected' }
+      return { id: rows[i].id, status: 'failed', error: 'Promise rejected' }
     })
 
     console.log('[SEND-EMAILS] Returning success response')

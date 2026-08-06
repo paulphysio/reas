@@ -3,13 +3,13 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Upload, FileSpreadsheet, ArrowLeft } from 'lucide-react'
+import { FileSpreadsheet } from 'lucide-react'
 import type { Department, Semester } from '@/lib/types'
 
 export default function UploadPage() {
   const router = useRouter()
   const [file, setFile] = useState<File | null>(null)
-  const [level, setLevel] = useState('100')
+  const [level, setLevel] = useState('200')
   const [department, setDepartment] = useState<Department>('PET')
   const [session, setSession] = useState('2024/2025')
   const [semester, setSemester] = useState<Semester>('Harmattan')
@@ -40,7 +40,9 @@ export default function UploadPage() {
         throw new Error('Upload failed')
       }
 
-      router.push('/dashboard/results')
+      const data = await response.json()
+      // Redirect to send page with the uploaded data
+      router.push(`/dashboard/mail?sheet=${data.id}`)
     } catch (err) {
       setError('Failed to upload result sheet')
     }
@@ -48,68 +50,57 @@ export default function UploadPage() {
   }
 
   return (
-    <div style={{ paddingTop: '48px' }}>
-      <div style={{ marginBottom: '48px' }}>
-        <Link
-          href="/dashboard/results"
-          className="btn btn-ghost"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}
-        >
-          <ArrowLeft style={{ width: '20px', height: '20px' }} />
-          Back to Results
-        </Link>
-        <p className="eyebrow">Upload</p>
-        <h1 style={{ marginBottom: '8px' }}>Upload Result Sheet</h1>
-        <p style={{ color: 'var(--chalk-dim)', lineHeight: '1.65' }}>
-          Upload an Excel file containing student results
-        </p>
+    <>
+      {/* Header */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', gap: '16px' }}>
+        <div style={{ font: '700 24px "Lora",Georgia,serif' }}>Upload</div>
+        <input placeholder="Search" style={{ font: '400 13.5px system-ui,sans-serif', padding: '9px 14px', borderRadius: '8px', border: '1px solid var(--reas-border)', background: 'var(--reas-card)', flex: 1, minWidth: '140px', maxWidth: '260px' }} />
       </div>
 
-      <div style={{ 
-        background: 'var(--paper)', 
-        borderRadius: '6px', 
-        padding: '44px 38px',
-        color: 'var(--ink)',
-        boxShadow: '0 30px 60px -24px rgba(0, 0, 0, 0.5)'
-      }}>
-        <form onSubmit={handleUpload} style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+      <div style={{ maxWidth: '560px', background: 'var(--reas-card)', border: '1px solid ' + 'var(--reas-border)', borderRadius: '14px', padding: '32px', textAlign: 'center' }}>
+        <div style={{ font: '700 18px "Lora",Georgia,serif', marginBottom: '8px' }}>Upload Result Sheet</div>
+        <div style={{ font: '400 14px system-ui,sans-serif', color: 'var(--reas-muted)', marginBottom: '20px' }}>
+          Upload this session's advising sheet to send results to each student.
+        </div>
+
+        <form onSubmit={handleUpload}>
           {error && (
             <div style={{ 
               padding: '14px 20px', 
-              borderRadius: '6px', 
-              background: 'rgba(192, 57, 43, 0.1)', 
-              border: '1px solid var(--red)',
-              color: 'var(--red)',
-              fontFamily: 'var(--font-ibm-plex-mono), monospace',
-              fontSize: '13px'
+              borderRadius: '8px', 
+              background: 'oklch(97% 0.03 40)', 
+              border: '1px solid oklch(55% 0.19 25)',
+              color: 'oklch(55% 0.19 25)',
+              fontSize: '13px',
+              marginBottom: '20px'
             }}>
               {error}
             </div>
           )}
 
-          <div>
+          <div style={{ marginBottom: '20px' }}>
             <label htmlFor="file-upload" style={{ 
               display: 'block', 
-              fontFamily: 'var(--font-ibm-plex-mono), monospace', 
-              fontSize: '11.5px', 
-              letterSpacing: '0.1em', 
+              font: '600 10.5px system-ui,sans-serif', 
+              letterSpacing: '0.05em', 
               textTransform: 'uppercase',
-              color: 'var(--gold)',
-              marginBottom: '12px'
+              color: 'oklch(45% 0.02 258)',
+              marginBottom: '5px',
+              textAlign: 'left'
             }}>
               Excel File
             </label>
             <div style={{ 
-              border: '2px dashed var(--line-strong)', 
-              borderRadius: '6px', 
-              padding: '48px',
+              border: '2px dashed oklch(88% 0.02 258)', 
+              borderRadius: '8px', 
+              padding: '32px',
               textAlign: 'center',
-              background: 'var(--paper-dim)'
+              background: 'oklch(96% 0.015 258)'
             }}>
-              <FileSpreadsheet style={{ width: '48px', height: '48px', color: '#7a7264', margin: '0 auto 16px' }} />
+              <FileSpreadsheet style={{ width: '48px', height: '48px', color: 'oklch(45% 0.02 258)', margin: '0 auto 16px' }} />
               <div>
                 <label htmlFor="file-upload" style={{ cursor: 'pointer' }}>
-                  <span style={{ color: 'var(--gold)', fontWeight: 600, fontSize: '15px' }}>
+                  <span style={{ color: 'oklch(42% 0.16 258)', fontWeight: 600, fontSize: '15px' }}>
                     Upload a file
                   </span>
                   <input
@@ -121,32 +112,32 @@ export default function UploadPage() {
                     style={{ display: 'none' }}
                   />
                 </label>
-                <p style={{ color: '#7a7264', fontSize: '13px', marginTop: '8px' }}>
+                <p style={{ color: 'oklch(45% 0.02 258)', fontSize: '13px', marginTop: '8px' }}>
                   or drag and drop
                 </p>
               </div>
-              <p style={{ color: '#7a7264', fontSize: '11px', marginTop: '12px' }}>
+              <p style={{ color: 'oklch(45% 0.02 258)', fontSize: '11px', marginTop: '12px' }}>
                 .xlsx and .csv files only
               </p>
               {file && (
-                <div style={{ marginTop: '16px', padding: '12px 20px', background: 'var(--gold-soft)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
-                  <FileSpreadsheet style={{ width: '20px', height: '20px', color: '#8a6b1e' }} />
-                  <span style={{ color: '#8a6b1e', fontSize: '13px', fontWeight: 500 }}>{file.name}</span>
+                <div style={{ marginTop: '16px', padding: '12px 20px', background: 'oklch(94% 0.015 258)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+                  <FileSpreadsheet style={{ width: '20px', height: '20px', color: 'oklch(42% 0.16 258)' }} />
+                  <span style={{ color: 'oklch(22% 0.035 258)', fontSize: '13px', fontWeight: 500 }}>{file.name}</span>
                 </div>
               )}
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '20px' }}>
             <div>
               <label htmlFor="level" style={{ 
                 display: 'block', 
-                fontFamily: 'var(--font-ibm-plex-mono), monospace', 
-                fontSize: '11.5px', 
-                letterSpacing: '0.1em', 
+                font: '600 10.5px system-ui,sans-serif', 
+                letterSpacing: '0.05em', 
                 textTransform: 'uppercase',
-                color: 'var(--gold)',
-                marginBottom: '12px'
+                color: 'oklch(45% 0.02 258)',
+                marginBottom: '5px',
+                textAlign: 'left'
               }}>
                 Level
               </label>
@@ -156,13 +147,12 @@ export default function UploadPage() {
                 onChange={(e) => setLevel(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '14px 20px',
-                  background: 'var(--paper)',
-                  border: '1px solid var(--line-strong)',
-                  borderRadius: '6px',
-                  color: 'var(--ink)',
-                  fontFamily: 'var(--font-inter)',
-                  fontSize: '15px',
+                  padding: '10px 12px',
+                  background: '#fff',
+                  border: '1px solid oklch(85% 0.02 258)',
+                  borderRadius: '8px',
+                  color: 'oklch(22% 0.035 258)',
+                  fontSize: '14px',
                   outline: 'none',
                   cursor: 'pointer'
                 }}
@@ -178,12 +168,12 @@ export default function UploadPage() {
             <div>
               <label htmlFor="department" style={{ 
                 display: 'block', 
-                fontFamily: 'var(--font-ibm-plex-mono), monospace', 
-                fontSize: '11.5px', 
-                letterSpacing: '0.1em', 
+                font: '600 10.5px system-ui,sans-serif', 
+                letterSpacing: '0.05em', 
                 textTransform: 'uppercase',
-                color: 'var(--gold)',
-                marginBottom: '12px'
+                color: 'oklch(45% 0.02 258)',
+                marginBottom: '5px',
+                textAlign: 'left'
               }}>
                 Department
               </label>
@@ -193,13 +183,12 @@ export default function UploadPage() {
                 onChange={(e) => setDepartment(e.target.value as Department)}
                 style={{
                   width: '100%',
-                  padding: '14px 20px',
-                  background: 'var(--paper)',
-                  border: '1px solid var(--line-strong)',
-                  borderRadius: '6px',
-                  color: 'var(--ink)',
-                  fontFamily: 'var(--font-inter)',
-                  fontSize: '15px',
+                  padding: '10px 12px',
+                  background: '#fff',
+                  border: '1px solid oklch(85% 0.02 258)',
+                  borderRadius: '8px',
+                  color: 'oklch(22% 0.035 258)',
+                  fontSize: '14px',
                   outline: 'none',
                   cursor: 'pointer'
                 }}
@@ -213,12 +202,12 @@ export default function UploadPage() {
             <div>
               <label htmlFor="session" style={{ 
                 display: 'block', 
-                fontFamily: 'var(--font-ibm-plex-mono), monospace', 
-                fontSize: '11.5px', 
-                letterSpacing: '0.1em', 
+                font: '600 10.5px system-ui,sans-serif', 
+                letterSpacing: '0.05em', 
                 textTransform: 'uppercase',
-                color: 'var(--gold)',
-                marginBottom: '12px'
+                color: 'oklch(45% 0.02 258)',
+                marginBottom: '5px',
+                textAlign: 'left'
               }}>
                 Session
               </label>
@@ -228,13 +217,12 @@ export default function UploadPage() {
                 onChange={(e) => setSession(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '14px 20px',
-                  background: 'var(--paper)',
-                  border: '1px solid var(--line-strong)',
-                  borderRadius: '6px',
-                  color: 'var(--ink)',
-                  fontFamily: 'var(--font-inter)',
-                  fontSize: '15px',
+                  padding: '10px 12px',
+                  background: '#fff',
+                  border: '1px solid oklch(85% 0.02 258)',
+                  borderRadius: '8px',
+                  color: 'oklch(22% 0.035 258)',
+                  fontSize: '14px',
                   outline: 'none',
                   cursor: 'pointer'
                 }}
@@ -248,12 +236,12 @@ export default function UploadPage() {
             <div>
               <label htmlFor="semester" style={{ 
                 display: 'block', 
-                fontFamily: 'var(--font-ibm-plex-mono), monospace', 
-                fontSize: '11.5px', 
-                letterSpacing: '0.1em', 
+                font: '600 10.5px system-ui,sans-serif', 
+                letterSpacing: '0.05em', 
                 textTransform: 'uppercase',
-                color: 'var(--gold)',
-                marginBottom: '12px'
+                color: 'oklch(45% 0.02 258)',
+                marginBottom: '5px',
+                textAlign: 'left'
               }}>
                 Semester
               </label>
@@ -263,13 +251,12 @@ export default function UploadPage() {
                 onChange={(e) => setSemester(e.target.value as Semester)}
                 style={{
                   width: '100%',
-                  padding: '14px 20px',
-                  background: 'var(--paper)',
-                  border: '1px solid var(--line-strong)',
-                  borderRadius: '6px',
-                  color: 'var(--ink)',
-                  fontFamily: 'var(--font-inter)',
-                  fontSize: '15px',
+                  padding: '10px 12px',
+                  background: '#fff',
+                  border: '1px solid oklch(85% 0.02 258)',
+                  borderRadius: '8px',
+                  color: 'oklch(22% 0.035 258)',
+                  fontSize: '14px',
                   outline: 'none',
                   cursor: 'pointer'
                 }}
@@ -282,14 +269,31 @@ export default function UploadPage() {
 
           <button
             type="submit"
-            disabled={uploading || !file}
-            className="btn btn-gold btn-lg"
-            style={{ width: '100%', justifyContent: 'center' }}
+            disabled={!file || uploading}
+            style={{ 
+              background: 'oklch(42% 0.16 258)', 
+              color: '#fff', 
+              font: '600 14px system-ui,sans-serif', 
+              padding: '11px 22px', 
+              borderRadius: '8px', 
+              cursor: (!file || uploading) ? 'not-allowed' : 'pointer',
+              display: 'inline-block',
+              whiteSpace: 'nowrap',
+              border: 'none',
+              opacity: (!file || uploading) ? 0.5 : 1
+            }}
           >
-            {uploading ? 'Uploading...' : 'Upload Result Sheet'}
+            {uploading ? 'Uploading...' : 'Upload Excel File'}
           </button>
         </form>
+
+        <Link
+          href="/dashboard/results"
+          style={{ display: 'block', marginTop: '20px', font: '600 13.5px system-ui,sans-serif', color: 'oklch(42% 0.16 258)', cursor: 'pointer', textDecoration: 'none' }}
+        >
+          Back to Results
+        </Link>
       </div>
-    </div>
+    </>
   )
 }

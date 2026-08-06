@@ -93,7 +93,7 @@ export default function DashboardPage() {
             }
           </div>
           <div 
-            onClick={() => router.push('/app/send')}
+            onClick={() => router.push('/dashboard/send')}
             style={{ marginTop: '12px', background: 'oklch(42% 0.16 258)', color: '#fff', font: '600 13px system-ui,sans-serif', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', display: 'inline-block', whiteSpace: 'nowrap' }} className="md:mt-4 md:px-5 md:text-sm"
           >
             Upload sheet
@@ -109,7 +109,7 @@ export default function DashboardPage() {
             }
           </div>
           <div 
-            onClick={() => router.push('/app/log')}
+            onClick={() => router.push('/dashboard/log')}
             style={{ marginTop: '12px', color: 'oklch(42% 0.16 258)', font: '600 13px system-ui,sans-serif', cursor: 'pointer', display: 'inline-block', whiteSpace: 'nowrap' }} className="md:mt-4 md:text-sm"
           >
             View session log

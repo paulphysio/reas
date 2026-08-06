@@ -1,182 +1,169 @@
-import { createClient } from '@/lib/supabase/server'
+'use client'
+
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
-import { FileSpreadsheet, Plus } from 'lucide-react'
 
-export default async function ResultsPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+export default function ResultsPage() {
+  const supabase = createClient()
+  const [sessionLog, setSessionLog] = useState<any[]>([])
+  const [emailLogs, setEmailLogs] = useState<any[]>([])
+  const [resultSheets, setResultSheets] = useState<any[]>([])
 
-  let resultSheets = null
-  try {
-    const { data } = await supabase
-      .from('result_sheets')
-      .select('*')
-      .order('created_at', { ascending: false })
-    resultSheets = data
-  } catch (error) {
-    console.log('Result sheets table not created yet')
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  const loadData = async () => {
+    const [logsData, sheetsData] = await Promise.all([
+      supabase.from('email_logs').select('*').order('sent_at', { ascending: false }),
+      supabase.from('result_sheets').select('*').order('created_at', { ascending: false })
+    ])
+    setEmailLogs(logsData.data || [])
+    setResultSheets(sheetsData.data || [])
+
+    // Build session log from database data
+    const sessionEntries = await Promise.all(
+      (sheetsData.data || []).map(async (sheet) => {
+        const { data: sheetLogs } = await supabase
+          .from('email_logs')
+          .select('*')
+          .eq('result_sheet_id', sheet.id)
+        
+        const sent = sheetLogs?.filter(l => l.status === 'sent').length || 0
+        const failed = sheetLogs?.filter(l => l.status === 'failed').length || 0
+        
+        return {
+          id: sheet.id,
+          label: `${sheet.session} · ${sheet.semester} · ${sheet.level}`,
+          time: new Date(sheet.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          total: sheet.data?.length || 0,
+          sent,
+          failed,
+          signature: sheet.signature || '',
+          comment: sheet.comment || ''
+        }
+      })
+    )
+    setSessionLog(sessionEntries)
   }
 
   return (
-    <div style={{ maxWidth: 1120, margin: '0 auto', padding: '0 20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px', flexDirection: 'column', gap: '16px' }} className="md:flex-row md:items-end md:mb-8">
-        <div>
-          <h1 style={{ font: '700 28px Lora,Georgia,serif', marginBottom: '8px' }}>Result Sheets</h1>
-          <p style={{ color: 'var(--reas-muted)', lineHeight: '1.6', fontSize: '14px' }}>
-            Manage your uploaded Excel result sheets
-          </p>
-        </div>
-        <Link
-          href="/dashboard/results/upload"
-          style={{ 
-            display: 'inline-flex', 
-            alignItems: 'center', 
-            gap: '8px',
-            background: 'oklch(42% 0.16 258)',
-            color: '#fff',
-            padding: '10px 16px',
-            borderRadius: '8px',
-            textDecoration: 'none',
-            font: '600 13px system-ui,sans-serif'
-          }}
-          className="md:px-5 md:text-sm"
-        >
-          <Plus style={{ width: '18px', height: '18px' }} />
-          Upload New
-        </Link>
+    <>
+      {/* Header */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', gap: '16px' }}>
+        <div style={{ font: '700 24px "Lora",Georgia,serif' }}>Session Log</div>
+        <input placeholder="Search" style={{ font: '400 13.5px system-ui,sans-serif', padding: '9px 14px', borderRadius: '8px', border: '1px solid var(--reas-border)', background: 'var(--reas-card)', flex: 1, minWidth: '140px', maxWidth: '260px' }} />
       </div>
 
-      {resultSheets && resultSheets.length > 0 ? (
-        <div style={{ 
-          background: 'var(--reas-card)', 
-          borderRadius: '12px', 
-          padding: '20px',
-          border: '1px solid var(--reas-border)'
-        }} className="md:p-7">
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--reas-divider)' }}>
-                  <th style={{ 
-                    padding: '12px 0', 
-                    textAlign: 'left', 
-                    font: '600 11px system-ui,sans-serif', 
-                    letterSpacing: '0.05em', 
-                    color: 'var(--reas-muted)', 
-                    textTransform: 'uppercase' 
-                  }}>
-                    Filename
-                  </th>
-                  <th style={{ 
-                    padding: '12px 0', 
-                    textAlign: 'left', 
-                    font: '600 11px system-ui,sans-serif', 
-                    letterSpacing: '0.05em', 
-                    color: 'var(--reas-muted)', 
-                    textTransform: 'uppercase' 
-                  }}>
-                    Department
-                  </th>
-                  <th style={{ 
-                    padding: '12px 0', 
-                    textAlign: 'left', 
-                    font: '600 11px system-ui,sans-serif', 
-                    letterSpacing: '0.05em', 
-                    color: 'var(--reas-muted)', 
-                    textTransform: 'uppercase' 
-                  }}>
-                    Level
-                  </th>
-                  <th style={{ 
-                    padding: '12px 0', 
-                    textAlign: 'left', 
-                    font: '600 11px system-ui,sans-serif', 
-                    letterSpacing: '0.05em', 
-                    color: 'var(--reas-muted)', 
-                    textTransform: 'uppercase' 
-                  }}>
-                    Session
-                  </th>
-                  <th style={{ 
-                    padding: '12px 0', 
-                    textAlign: 'left', 
-                    font: '600 11px system-ui,sans-serif', 
-                    letterSpacing: '0.05em', 
-                    color: 'var(--reas-muted)', 
-                    textTransform: 'uppercase' 
-                  }}>
-                    Semester
-                  </th>
-                  <th style={{ 
-                    padding: '12px 0', 
-                    textAlign: 'left', 
-                    font: '600 11px system-ui,sans-serif', 
-                    letterSpacing: '0.05em', 
-                    color: 'var(--reas-muted)', 
-                    textTransform: 'uppercase' 
-                  }}>
-                    Date
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {resultSheets.map((sheet: any) => (
-                  <tr key={sheet.id} style={{ borderBottom: '1px solid var(--reas-divider)' }}>
-                    <td style={{ padding: '12px 0' }}>
-                      <Link
-                        href={`/dashboard/results/${sheet.id}`}
-                        style={{ color: 'oklch(42% 0.16 258)', fontWeight: 600, textDecoration: 'none' }}
-                      >
-                        {sheet.filename || 'Untitled'}
-                      </Link>
-                    </td>
-                    <td style={{ padding: '12px 0', color: 'var(--reas-text)' }}>{sheet.department}</td>
-                    <td style={{ padding: '12px 0', color: 'var(--reas-text)' }}>{sheet.level}</td>
-                    <td style={{ padding: '12px 0', color: 'var(--reas-text)' }}>{sheet.session}</td>
-                    <td style={{ padding: '12px 0', color: 'var(--reas-text)' }}>{sheet.semester}</td>
-                    <td style={{ padding: '12px 0', color: 'var(--reas-muted)', fontSize: '13px' }}>
-                      {new Date(sheet.created_at).toLocaleDateString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* Session Log Cards */}
+      {sessionLog.length === 0 && (
+        <div style={{ background: 'var(--reas-card)', border: '1px solid ' + 'var(--reas-border)', borderRadius: '14px', padding: '44px', textAlign: 'center' }}>
+          <div style={{ font: '700 18px "Lora",Georgia,serif', marginBottom: '8px' }}>No session history yet</div>
+          <div style={{ font: '400 14px system-ui,sans-serif', color: 'var(--reas-muted)', marginBottom: '20px' }}>
+            History builds as you send batches during this session.
           </div>
-        </div>
-      ) : (
-        <div style={{ 
-          background: 'var(--reas-card)', 
-          borderRadius: '12px', 
-          padding: '48px 24px',
-          border: '1px solid var(--reas-border)',
-          textAlign: 'center'
-        }} className="md:py-16 md:px-10">
-          <FileSpreadsheet style={{ width: '48px', height: '48px', color: 'var(--reas-muted)', margin: '0 auto 16px' }} />
-          <h3 style={{ font: '600 16px system-ui,sans-serif', marginBottom: '8px' }}>
-            No result sheets yet
-          </h3>
-          <p style={{ color: 'var(--reas-muted)', marginBottom: '20px', fontSize: '14px' }}>
-            Upload your first result sheet to get started
-          </p>
           <Link
-            href="/dashboard/results/upload"
+            href="/dashboard/send"
             style={{ 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              gap: '8px',
-              background: 'oklch(42% 0.16 258)',
-              color: '#fff',
-              padding: '10px 20px',
-              borderRadius: '8px',
-              textDecoration: 'none',
-              font: '600 14px system-ui,sans-serif'
+              background: 'oklch(42% 0.16 258)', 
+              color: '#fff', 
+              font: '600 14px system-ui,sans-serif', 
+              padding: '11px 22px', 
+              borderRadius: '8px', 
+              cursor: 'pointer', 
+              display: 'inline-block', 
+              whiteSpace: 'nowrap',
+              textDecoration: 'none'
             }}
           >
-            <Plus style={{ width: '18px', height: '18px' }} />
-            Upload First Result
+            Send Result
           </Link>
         </div>
       )}
-    </div>
+
+      {sessionLog.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: '20px' }}>
+          {sessionLog.map((entry) => (
+            <div key={entry.id} style={{ background: 'var(--reas-card)', border: '1px solid ' + 'var(--reas-border)', borderRadius: '14px', padding: '22px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+                <div>
+                  <div style={{ font: '700 16px "Lora",Georgia,serif', marginBottom: '4px' }}>{entry.label}</div>
+                  <div style={{ font: '400 12.5px system-ui,sans-serif', color: 'var(--reas-muted)' }}>{entry.time}</div>
+                </div>
+                <div style={{ font: '600 12px system-ui,sans-serif', color: 'var(--reas-muted)' }}>
+                  {entry.total} records
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(100px,1fr))', gap: '12px', marginBottom: '16px' }}>
+                <div style={{ background: 'var(--reas-tablehead)', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
+                  <div style={{ font: '700 24px "Lora",Georgia,serif', color: 'oklch(42% 0.16 258)' }}>{entry.sent}</div>
+                  <div style={{ font: '600 11.5px system-ui,sans-serif', color: 'var(--reas-muted)' }}>Sent</div>
+                </div>
+                <div style={{ background: 'oklch(97% 0.03 40)', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
+                  <div style={{ font: '700 24px "Lora",Georgia,serif', color: 'oklch(55% 0.19 25)' }}>{entry.failed}</div>
+                  <div style={{ font: '600 11.5px system-ui,sans-serif', color: 'var(--reas-muted)' }}>Failed</div>
+                </div>
+              </div>
+
+              {(entry.signature || entry.comment) && (
+                <div style={{ borderTop: '1px solid ' + 'var(--reas-divider)', paddingTop: '14px' }}>
+                  {entry.signature && (
+                    <div style={{ font: '600 11.5px system-ui,sans-serif', color: 'var(--reas-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
+                      Sign-off
+                    </div>
+                  )}
+                  {entry.signature && (
+                    <div style={{ font: '600 13px system-ui,sans-serif', marginBottom: '8px' }}>{entry.signature}</div>
+                  )}
+                  {entry.comment && (
+                    <div style={{ font: '400 12.5px system-ui,sans-serif', color: 'var(--reas-muted)' }}>
+                      {entry.comment}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Recent Email Logs */}
+      {emailLogs.length > 0 && (
+        <div style={{ marginTop: '32px' }}>
+          <div style={{ font: '700 18px "Lora",Georgia,serif', marginBottom: '16px' }}>Recent Email Logs</div>
+          <div style={{ background: 'var(--reas-card)', border: '1px solid ' + 'var(--reas-border)', borderRadius: '12px', overflow: 'hidden' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr', background: 'var(--reas-tablehead)', padding: '11px 16px', font: '600 11.5px system-ui,sans-serif', color: 'var(--reas-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', gap: '12px' }}>
+              <div>Student</div><div>Email</div><div>Status</div><div>Time</div>
+            </div>
+            {emailLogs.slice(0, 10).map((log) => (
+              <div key={log.id} style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr', padding: '12px 16px', borderTop: '1px solid ' + 'var(--reas-divider)', alignItems: 'center', gap: '12px' }}>
+                <div style={{ font: '600 13.5px system-ui,sans-serif' }}>{log.student_name}</div>
+                <div style={{ font: '400 13px system-ui,sans-serif', color: 'var(--reas-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {log.recipient_email}
+                </div>
+                <div>
+                  <div style={{ 
+                    background: log.status === 'sent' ? 'oklch(92% 0.03 258)' : 'oklch(93% 0.05 30)', 
+                    color: log.status === 'sent' ? 'oklch(42% 0.16 258)' : 'oklch(50% 0.19 25)', 
+                    font: '600 11px system-ui,sans-serif', 
+                    padding: '4px 9px', 
+                    borderRadius: '100px', 
+                    whiteSpace: 'nowrap',
+                    display: 'inline-block'
+                  }}>
+                    {log.status}
+                  </div>
+                </div>
+                <div style={{ font: '400 12.5px system-ui,sans-serif', color: 'var(--reas-muted)' }}>
+                  {log.sent_at ? new Date(log.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
   )
 }
