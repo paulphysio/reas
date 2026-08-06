@@ -12,6 +12,8 @@ export default function DashboardLayout({
 }) {
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
+  const [schoolName, setSchoolName] = useState('')
+  const [departmentName, setDepartmentName] = useState('')
   const [loading, setLoading] = useState(true)
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true)
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true)
@@ -38,6 +40,30 @@ export default function DashboardLayout({
         .eq('id', user.id)
         .single()
       setProfile(data)
+      
+      // Set school name
+      if (data?.custom_school_name) {
+        setSchoolName(data.custom_school_name)
+      } else if (data?.school_id) {
+        const { data: school } = await supabase
+          .from('schools')
+          .select('name')
+          .eq('id', data.school_id)
+          .single()
+        setSchoolName(school?.name || '')
+      }
+      
+      // Set department name
+      if (data?.custom_department_name) {
+        setDepartmentName(data.custom_department_name)
+      } else if (data?.department_id) {
+        const { data: department } = await supabase
+          .from('departments')
+          .select('name')
+          .eq('id', data.department_id)
+          .single()
+        setDepartmentName(department?.name || '')
+      }
     } catch (error) {
       setProfile({
         full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Jordan Blake',
@@ -52,8 +78,9 @@ export default function DashboardLayout({
 
   const advisorInitials = (profile?.full_name || '').trim().split(/\s+/).filter(Boolean).map((w: string) => w[0]).slice(0, 2).join('').toUpperCase() || 'A'
   const advisorName = profile?.full_name || 'Jordan Blake'
-  const advisorDepartment = profile?.department || 'Petroleum Engineering'
-  const advisorSchool = profile?.school || 'Northbridge University'
+  const advisorDepartment = departmentName || 'Department'
+  const advisorSchool = schoolName || 'School'
+  const advisorRole = profile?.user_type === 'secondary' ? 'Class Teacher' : 'Course Adviser'
 
   const navItems = [
     { key: 'dashboard', label: 'Dashboard', href: '/dashboard' },
@@ -108,7 +135,7 @@ export default function DashboardLayout({
               )
             })}
 
-            <form action="/auth/logout" method="POST" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '11px 12px', borderRadius: '8px', cursor: 'pointer', marginBottom: '4px', background: 'transparent', border: 'none', color: '#fff' }}>
+            <form action="/auth/logout" method="POST" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '11px 12px', borderRadius: '8px', cursor: 'pointer', marginBottom: '4px', background: 'transparent', border: 'none', color: '#fff' }} onClick={(e) => e.currentTarget.submit()}>
               <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'rgba(255,255,255,0.4)', flex: 'none' }}></span>
               <span style={{ font: '600 14px system-ui,sans-serif', whiteSpace: 'nowrap' }}>Logout</span>
             </form>
@@ -144,7 +171,7 @@ export default function DashboardLayout({
                 Photo
               </div>
               <div style={{ font: '700 16px "Lora",Georgia,serif' }}>{advisorName}</div>
-              <div style={{ font: '400 12.5px system-ui,sans-serif', opacity: 0.85, marginTop: '2px' }}>Course Adviser</div>
+              <div style={{ font: '400 12.5px system-ui,sans-serif', opacity: 0.85, marginTop: '2px' }}>{advisorRole}</div>
               <div style={{ font: '400 12px system-ui,sans-serif', opacity: 0.7, marginTop: '6px' }}>{advisorDepartment} · {advisorSchool}</div>
             </div>
 

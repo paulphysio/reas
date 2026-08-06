@@ -19,10 +19,12 @@ interface Department {
 export default function ProfilePage() {
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
+  const [userType, setUserType] = useState<'tertiary' | 'secondary'>('tertiary')
   const [schoolId, setSchoolId] = useState('')
   const [customSchool, setCustomSchool] = useState('')
   const [departmentId, setDepartmentId] = useState('')
   const [customDepartment, setCustomDepartment] = useState('')
+  const [secondaryDepartment, setSecondaryDepartment] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [schools, setSchools] = useState<School[]>([])
@@ -64,15 +66,20 @@ export default function ProfilePage() {
       try {
         const { data } = await supabase
           .from('profiles')
-          .select('full_name, school_id, custom_school_name, department_id, custom_department_name')
+          .select('full_name, user_type, school_id, custom_school_name, department_id, custom_department_name')
           .eq('id', user.id)
           .single()
         if (data) {
           setFullName(data.full_name || '')
+          setUserType(data.user_type || 'tertiary')
           setSchoolId(data.school_id || '')
           setCustomSchool(data.custom_school_name || '')
           setDepartmentId(data.department_id || '')
           setCustomDepartment(data.custom_department_name || '')
+          
+          if (data.user_type === 'secondary' && data.custom_department_name) {
+            setSecondaryDepartment(data.custom_department_name)
+          }
           
           if (data.school_id) {
             loadDepartments(data.school_id)
@@ -93,26 +100,33 @@ export default function ProfilePage() {
     if (!user) return
 
     try {
-      const updateData: any = { full_name: fullName }
+      const updateData: any = { full_name: fullName, user_type: userType }
 
-      if (schoolId === 'other') {
+      if (userType === 'tertiary') {
+        if (schoolId === 'other') {
+          updateData.custom_school_name = customSchool.trim()
+          updateData.school_id = null
+        } else if (schoolId) {
+          updateData.school_id = schoolId
+          updateData.custom_school_name = null
+        }
+
+        if (schoolId !== 'other' && departmentId === 'other') {
+          updateData.custom_department_name = customDepartment.trim()
+          updateData.department_id = null
+        } else if (departmentId) {
+          updateData.department_id = departmentId
+          updateData.custom_department_name = null
+        }
+
+        if (schoolId === 'other' && customDepartment.trim()) {
+          updateData.custom_department_name = customDepartment.trim()
+          updateData.department_id = null
+        }
+      } else {
         updateData.custom_school_name = customSchool.trim()
         updateData.school_id = null
-      } else if (schoolId) {
-        updateData.school_id = schoolId
-        updateData.custom_school_name = null
-      }
-
-      if (schoolId !== 'other' && departmentId === 'other') {
-        updateData.custom_department_name = customDepartment.trim()
-        updateData.department_id = null
-      } else if (departmentId) {
-        updateData.department_id = departmentId
-        updateData.custom_department_name = null
-      }
-
-      if (schoolId === 'other' && customDepartment.trim()) {
-        updateData.custom_department_name = customDepartment.trim()
+        updateData.custom_department_name = secondaryDepartment
         updateData.department_id = null
       }
 
@@ -231,7 +245,7 @@ export default function ProfilePage() {
           </div>
 
           <div>
-            <label htmlFor="school" style={{ 
+            <label style={{ 
               display: 'block', 
               font: '600 11px system-ui,sans-serif', 
               letterSpacing: '0.05em', 
@@ -239,109 +253,182 @@ export default function ProfilePage() {
               color: 'var(--reas-muted)',
               marginBottom: '8px'
             }}>
-              Institution
+              Institution Type
             </label>
-            {loadingSchools ? (
-              <div style={{ font: '400 13px system-ui,sans-serif', color: 'var(--reas-muted)', padding: '10px 12px' }}>Loading institutions...</div>
-            ) : (
-              <>
-                <select
-                  id="school"
-                  value={schoolId}
-                  onChange={(e) => {
-                    setSchoolId(e.target.value)
-                    if (e.target.value !== 'other') {
-                      setCustomSchool('')
-                    }
-                  }}
-                  disabled={loading}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    background: 'var(--reas-card)',
-                    border: '1px solid var(--reas-border)',
-                    borderRadius: '8px',
-                    color: 'var(--reas-text)',
-                    font: '400 14px system-ui,sans-serif',
-                    outline: 'none',
-                    marginBottom: schoolId === 'other' ? '8px' : '0'
-                  }}
-                >
-                  <option value="">Select your institution</option>
-                  {schools.map((school) => (
-                    <option key={school.id} value={school.id}>
-                      {school.name} ({school.state})
-                    </option>
-                  ))}
-                  <option value="other">Other (outside Nigeria)</option>
-                </select>
-                {schoolId === 'other' && (
-                  <input
-                    type="text"
-                    value={customSchool}
-                    onChange={(e) => setCustomSchool(e.target.value)}
-                    disabled={loading}
-                    placeholder="Enter your institution name"
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      background: 'var(--reas-card)',
-                      border: '1px solid var(--reas-border)',
-                      borderRadius: '8px',
-                      color: 'var(--reas-text)',
-                      font: '400 14px system-ui,sans-serif',
-                      outline: 'none'
-                    }}
-                  />
-                )}
-              </>
-            )}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => setUserType('tertiary')}
+                disabled={loading}
+                style={{
+                  flex: 1,
+                  padding: '10px 12px',
+                  borderRadius: '8px',
+                  border: userType === 'tertiary' ? '2px solid oklch(42% 0.16 258)' : '1px solid var(--reas-border)',
+                  background: userType === 'tertiary' ? 'oklch(42% 0.16 258)' : 'var(--reas-card)',
+                  color: userType === 'tertiary' ? '#fff' : 'var(--reas-text)',
+                  font: '600 13px system-ui,sans-serif',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  outline: 'none'
+                }}
+              >
+                Tertiary Institution
+              </button>
+              <button
+                type="button"
+                onClick={() => setUserType('secondary')}
+                disabled={loading}
+                style={{
+                  flex: 1,
+                  padding: '10px 12px',
+                  borderRadius: '8px',
+                  border: userType === 'secondary' ? '2px solid oklch(42% 0.16 258)' : '1px solid var(--reas-border)',
+                  background: userType === 'secondary' ? 'oklch(42% 0.16 258)' : 'var(--reas-card)',
+                  color: userType === 'secondary' ? '#fff' : 'var(--reas-text)',
+                  font: '600 13px system-ui,sans-serif',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  outline: 'none'
+                }}
+              >
+                Secondary School
+              </button>
+            </div>
           </div>
 
-          <div>
-            <label htmlFor="department" style={{ 
-              display: 'block', 
-              font: '600 11px system-ui,sans-serif', 
-              letterSpacing: '0.05em', 
-              textTransform: 'uppercase',
-              color: 'var(--reas-muted)',
-              marginBottom: '8px'
-            }}>
-              Department
-            </label>
-            {schoolId && schoolId !== 'other' && departments.length > 0 ? (
-              <>
-                <select
-                  id="department"
-                  value={departmentId}
-                  onChange={(e) => {
-                    setDepartmentId(e.target.value)
-                    if (e.target.value !== 'other') {
-                      setCustomDepartment('')
-                    }
-                  }}
-                  disabled={loading}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    background: 'var(--reas-card)',
-                    border: '1px solid var(--reas-border)',
-                    borderRadius: '8px',
-                    color: 'var(--reas-text)',
-                    font: '400 14px system-ui,sans-serif',
-                    outline: 'none',
-                    marginBottom: departmentId === 'other' ? '8px' : '0'
-                  }}
-                >
-                  <option value="">Select your department</option>
-                  {departments.map((dept) => (
-                    <option key={dept.id} value={dept.id}>
-                      {dept.name} ({dept.code})
-                    </option>
-                  ))}
-                  <option value="other">Other (not listed)</option>
-                </select>
-                {departmentId === 'other' && (
+          {userType === 'tertiary' ? (
+            <>
+              <div>
+                <label htmlFor="school" style={{ 
+                  display: 'block', 
+                  font: '600 11px system-ui,sans-serif', 
+                  letterSpacing: '0.05em', 
+                  textTransform: 'uppercase',
+                  color: 'var(--reas-muted)',
+                  marginBottom: '8px'
+                }}>
+                  Institution
+                </label>
+                {loadingSchools ? (
+                  <div style={{ font: '400 13px system-ui,sans-serif', color: 'var(--reas-muted)', padding: '10px 12px' }}>Loading institutions...</div>
+                ) : (
+                  <>
+                    <select
+                      id="school"
+                      value={schoolId}
+                      onChange={(e) => {
+                        setSchoolId(e.target.value)
+                        if (e.target.value !== 'other') {
+                          setCustomSchool('')
+                        }
+                      }}
+                      disabled={loading}
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        background: 'var(--reas-card)',
+                        border: '1px solid var(--reas-border)',
+                        borderRadius: '8px',
+                        color: 'var(--reas-text)',
+                        font: '400 14px system-ui,sans-serif',
+                        outline: 'none',
+                        marginBottom: schoolId === 'other' ? '8px' : '0'
+                      }}
+                    >
+                      <option value="">Select your institution</option>
+                      {schools.map((school) => (
+                        <option key={school.id} value={school.id}>
+                          {school.name} ({school.state})
+                        </option>
+                      ))}
+                      <option value="other">Other (outside Nigeria)</option>
+                    </select>
+                    {schoolId === 'other' && (
+                      <input
+                        type="text"
+                        value={customSchool}
+                        onChange={(e) => setCustomSchool(e.target.value)}
+                        disabled={loading}
+                        placeholder="Enter your institution name"
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          background: 'var(--reas-card)',
+                          border: '1px solid var(--reas-border)',
+                          borderRadius: '8px',
+                          color: 'var(--reas-text)',
+                          font: '400 14px system-ui,sans-serif',
+                          outline: 'none'
+                        }}
+                      />
+                    )}
+                  </>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="department" style={{ 
+                  display: 'block', 
+                  font: '600 11px system-ui,sans-serif', 
+                  letterSpacing: '0.05em', 
+                  textTransform: 'uppercase',
+                  color: 'var(--reas-muted)',
+                  marginBottom: '8px'
+                }}>
+                  Department
+                </label>
+                {schoolId && schoolId !== 'other' && departments.length > 0 ? (
+                  <>
+                    <select
+                      id="department"
+                      value={departmentId}
+                      onChange={(e) => {
+                        setDepartmentId(e.target.value)
+                        if (e.target.value !== 'other') {
+                          setCustomDepartment('')
+                        }
+                      }}
+                      disabled={loading}
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        background: 'var(--reas-card)',
+                        border: '1px solid var(--reas-border)',
+                        borderRadius: '8px',
+                        color: 'var(--reas-text)',
+                        font: '400 14px system-ui,sans-serif',
+                        outline: 'none',
+                        marginBottom: departmentId === 'other' ? '8px' : '0'
+                      }}
+                    >
+                      <option value="">Select your department</option>
+                      {departments.map((dept) => (
+                        <option key={dept.id} value={dept.id}>
+                          {dept.name} ({dept.code})
+                        </option>
+                      ))}
+                      <option value="other">Other (not listed)</option>
+                    </select>
+                    {departmentId === 'other' && (
+                      <input
+                        type="text"
+                        value={customDepartment}
+                        onChange={(e) => setCustomDepartment(e.target.value)}
+                        disabled={loading}
+                        placeholder="Enter your department name"
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          background: 'var(--reas-card)',
+                          border: '1px solid var(--reas-border)',
+                          borderRadius: '8px',
+                          color: 'var(--reas-text)',
+                          font: '400 14px system-ui,sans-serif',
+                          outline: 'none'
+                        }}
+                      />
+                    )}
+                  </>
+                ) : schoolId === 'other' ? (
                   <input
                     type="text"
                     value={customDepartment}
@@ -359,46 +446,95 @@ export default function ProfilePage() {
                       outline: 'none'
                     }}
                   />
+                ) : (
+                  <select
+                    value={departmentId}
+                    disabled
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      background: 'oklch(94% 0.015 258)',
+                      border: '1px solid var(--reas-border)',
+                      borderRadius: '8px',
+                      color: 'var(--reas-muted)',
+                      font: '400 14px system-ui,sans-serif',
+                      outline: 'none',
+                      cursor: 'not-allowed'
+                    }}
+                  >
+                    <option value="">Select institution first</option>
+                  </select>
                 )}
-              </>
-            ) : schoolId === 'other' ? (
-              <input
-                type="text"
-                value={customDepartment}
-                onChange={(e) => setCustomDepartment(e.target.value)}
-                disabled={loading}
-                placeholder="Enter your department name"
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  background: 'var(--reas-card)',
-                  border: '1px solid var(--reas-border)',
-                  borderRadius: '8px',
-                  color: 'var(--reas-text)',
-                  font: '400 14px system-ui,sans-serif',
-                  outline: 'none'
-                }}
-              />
-            ) : (
-              <select
-                value={departmentId}
-                disabled
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  background: 'oklch(94% 0.015 258)',
-                  border: '1px solid var(--reas-border)',
-                  borderRadius: '8px',
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <label htmlFor="school" style={{ 
+                  display: 'block', 
+                  font: '600 11px system-ui,sans-serif', 
+                  letterSpacing: '0.05em', 
+                  textTransform: 'uppercase',
                   color: 'var(--reas-muted)',
-                  font: '400 14px system-ui,sans-serif',
-                  outline: 'none',
-                  cursor: 'not-allowed'
-                }}
-              >
-                <option value="">Select institution first</option>
-              </select>
-            )}
-          </div>
+                  marginBottom: '8px'
+                }}>
+                  School Name
+                </label>
+                <input
+                  id="school"
+                  type="text"
+                  value={customSchool}
+                  onChange={(e) => setCustomSchool(e.target.value)}
+                  disabled={loading}
+                  placeholder="Enter your secondary school name"
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    background: 'var(--reas-card)',
+                    border: '1px solid var(--reas-border)',
+                    borderRadius: '8px',
+                    color: 'var(--reas-text)',
+                    font: '400 14px system-ui,sans-serif',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="department" style={{ 
+                  display: 'block', 
+                  font: '600 11px system-ui,sans-serif', 
+                  letterSpacing: '0.05em', 
+                  textTransform: 'uppercase',
+                  color: 'var(--reas-muted)',
+                  marginBottom: '8px'
+                }}>
+                  Department
+                </label>
+                <select
+                  id="department"
+                  value={secondaryDepartment}
+                  onChange={(e) => setSecondaryDepartment(e.target.value)}
+                  disabled={loading}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    background: 'var(--reas-card)',
+                    border: '1px solid var(--reas-border)',
+                    borderRadius: '8px',
+                    color: 'var(--reas-text)',
+                    font: '400 14px system-ui,sans-serif',
+                    outline: 'none'
+                  }}
+                >
+                  <option value="">Select your department</option>
+                  <option value="Science">Science</option>
+                  <option value="Commercial">Commercial</option>
+                  <option value="Arts">Arts</option>
+                </select>
+              </div>
+            </>
+          )}
 
           <button
             type="submit"

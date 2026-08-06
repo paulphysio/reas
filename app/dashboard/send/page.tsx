@@ -22,7 +22,7 @@ export default function SendPage() {
   const [sendProgress, setSendProgress] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [profile, setProfile] = useState<{ department_id?: string; custom_department_name?: string } | null>(null)
+  const [profile, setProfile] = useState<{ user_type?: string; department_id?: string; custom_department_name?: string } | null>(null)
   const [loadingProfile, setLoadingProfile] = useState(true)
   
   // Form state
@@ -33,7 +33,42 @@ export default function SendPage() {
   const [comment, setComment] = useState('')
   const [signature, setSignature] = useState('')
   
+  const isSecondary = profile?.user_type === 'secondary'
+  const levelLabel = isSecondary ? 'Class' : 'Level'
+  const semesterOptions = isSecondary 
+    ? ['First Term', 'Second Term', 'Third Term']
+    : ['Harmattan', 'Rain']
+  const levelOptions = isSecondary
+    ? ['JSS 1', 'JSS 2', 'JSS 3', 'SS 1', 'SS 2', 'SS 3']
+    : ['100', '200', '300', '400', '500', '600']
+  const defaultSemester = isSecondary ? 'First Term' : 'Harmattan'
+  const defaultLevel = isSecondary ? 'SS 1' : '100'
+
+  // Map secondary class to numeric level for database
+  const getLevelValue = (lvl: string) => {
+    if (isSecondary) {
+      const levelMap: Record<string, number> = {
+        'JSS 1': 100,
+        'JSS 2': 200,
+        'JSS 3': 300,
+        'SS 1': 400,
+        'SS 2': 500,
+        'SS 3': 600
+      }
+      return levelMap[lvl] || 400
+    }
+    return parseInt(lvl)
+  }
+  
   const supabase = createClient()
+
+  // Update defaults when user type changes
+  useEffect(() => {
+    if (profile?.user_type) {
+      setSemester(defaultSemester)
+      setLevel(defaultLevel)
+    }
+  }, [profile?.user_type])
 
   useEffect(() => {
     fetchProfile()
@@ -48,7 +83,7 @@ export default function SendPage() {
 
     const { data } = await supabase
       .from('profiles')
-      .select('department_id, custom_department_name')
+      .select('user_type, department_id, custom_department_name')
       .eq('id', user.id)
       .single()
 
@@ -147,11 +182,12 @@ export default function SendPage() {
       console.log('[SEND PAGE] Profile:', profile)
 
       // Create result sheet record
+      const levelValue = getLevelValue(level)
       const { data: sheetData, error: sheetError } = await supabase
         .from('result_sheets')
         .insert({
           uploaded_by: user.id,
-          level: parseInt(level),
+          level: levelValue,
           department_id: profile?.department_id,
           session,
           semester,
@@ -311,7 +347,7 @@ export default function SendPage() {
           ) : (
             <>
               <div style={{ font: '700 18px "Lora",Georgia,serif', marginBottom: '8px' }}>No sheet uploaded yet</div>
-              <div style={{ font: '400 14px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', marginBottom: '20px' }}>Upload this session's advising sheet to send results to each student.</div>
+              <div style={{ font: '400 14px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', marginBottom: '20px' }}>Upload this session's {isSecondary ? 'report' : 'advising'} sheet to send results to each student.</div>
               <div onClick={() => setModalOpen(true)} style={{ background: 'oklch(42% 0.16 258)', color: '#fff', font: '600 14px system-ui,sans-serif', padding: '11px 22px', borderRadius: '8px', cursor: 'pointer', display: 'inline-block', whiteSpace: 'nowrap' }}>
                 Upload Excel File
               </div>
@@ -326,7 +362,7 @@ export default function SendPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
             <div>
               <div style={{ font: '700 22px "Lora",Georgia,serif', marginBottom: '6px' }}>Review before sending</div>
-              <div style={{ font: '400 14px system-ui,sans-serif', color: 'oklch(45% 0.02 258)' }}>{semester} {year} · {session} · Level {level} · {rows.length} records</div>
+              <div style={{ font: '400 14px system-ui,sans-serif', color: 'oklch(45% 0.02 258)' }}>{semester} {year} · {session} · {levelLabel} {level} · {rows.length} records</div>
             </div>
             <div onClick={backToUpload} style={{ font: '600 13.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', cursor: 'pointer', padding: '9px 4px' }}>Back</div>
           </div>
@@ -497,22 +533,16 @@ export default function SendPage() {
               onChange={(e) => setSemester(e.target.value)}
               style={{ width: '100%', font: '600 13px system-ui,sans-serif', padding: '8px 10px', borderRadius: '6px', border: '1px solid oklch(88% 0.02 258)', background: '#fff', color: 'oklch(22% 0.035 258)', marginBottom: '14px', outline: 'none' }}
             >
-              <option value="Harmattan">Harmattan</option>
-              <option value="Rain">Rain</option>
+              {semesterOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
             </select>
 
-            <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Level</div>
+            <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>{levelLabel}</div>
             <select 
               value={level} 
               onChange={(e) => setLevel(e.target.value)}
               style={{ width: '100%', font: '600 13px system-ui,sans-serif', padding: '8px 10px', borderRadius: '6px', border: '1px solid oklch(88% 0.02 258)', background: '#fff', color: 'oklch(22% 0.035 258)', marginBottom: '14px', outline: 'none' }}
             >
-              <option value="100">100</option>
-              <option value="200">200</option>
-              <option value="300">300</option>
-              <option value="400">400</option>
-              <option value="500">500</option>
-              <option value="600">600</option>
+              {levelOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
             </select>
 
             <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Comment</div>

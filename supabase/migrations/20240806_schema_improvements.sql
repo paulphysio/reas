@@ -1,5 +1,6 @@
 -- Schema Improvements Migration
 -- This migration adds foreign key constraints, indexes, triggers, and other improvements
+-- This migration is idempotent - it can be run multiple times safely
 
 -- Enable UUID extension if not already enabled
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -9,7 +10,15 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- ============================================
 
 -- Add unique constraint on school name
-ALTER TABLE schools ADD CONSTRAINT schools_name_unique UNIQUE (name);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'schools_name_unique'
+  ) THEN
+    ALTER TABLE schools ADD CONSTRAINT schools_name_unique UNIQUE (name);
+  END IF;
+END $$;
 
 -- Add index for state filtering
 CREATE INDEX IF NOT EXISTS idx_schools_state ON schools(state);
@@ -19,9 +28,17 @@ CREATE INDEX IF NOT EXISTS idx_schools_state ON schools(state);
 -- ============================================
 
 -- Add foreign key constraint to schools
-ALTER TABLE departments 
-ADD CONSTRAINT fk_departments_school 
-FOREIGN KEY (school_id) REFERENCES schools(id) ON DELETE SET NULL;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'fk_departments_school'
+  ) THEN
+    ALTER TABLE departments 
+    ADD CONSTRAINT fk_departments_school 
+    FOREIGN KEY (school_id) REFERENCES schools(id) ON DELETE SET NULL;
+  END IF;
+END $$;
 
 -- Add unique constraint on department code within a school
 CREATE UNIQUE INDEX IF NOT EXISTS idx_departments_school_code 
@@ -35,22 +52,50 @@ CREATE INDEX IF NOT EXISTS idx_departments_school_id ON departments(school_id);
 -- PROFILES TABLE
 -- ============================================
 
+-- Add user_type column if it doesn't exist
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS user_type text DEFAULT 'tertiary' CHECK (user_type IN ('tertiary', 'secondary'));
+
 -- Add foreign key constraint to schools
-ALTER TABLE profiles 
-ADD CONSTRAINT fk_profiles_school 
-FOREIGN KEY (school_id) REFERENCES schools(id) ON DELETE SET NULL;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'fk_profiles_school'
+  ) THEN
+    ALTER TABLE profiles 
+    ADD CONSTRAINT fk_profiles_school 
+    FOREIGN KEY (school_id) REFERENCES schools(id) ON DELETE SET NULL;
+  END IF;
+END $$;
 
 -- Add foreign key constraint to departments
-ALTER TABLE profiles 
-ADD CONSTRAINT fk_profiles_department 
-FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE SET NULL;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'fk_profiles_department'
+  ) THEN
+    ALTER TABLE profiles 
+    ADD CONSTRAINT fk_profiles_department 
+    FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE SET NULL;
+  END IF;
+END $$;
 
 -- Add unique constraint on email
-ALTER TABLE profiles ADD CONSTRAINT profiles_email_unique UNIQUE (email);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'profiles_email_unique'
+  ) THEN
+    ALTER TABLE profiles ADD CONSTRAINT profiles_email_unique UNIQUE (email);
+  END IF;
+END $$;
 
 -- Add index for department filtering
 CREATE INDEX IF NOT EXISTS idx_profiles_department_id ON profiles(department_id);
 CREATE INDEX IF NOT EXISTS idx_profiles_school_id ON profiles(school_id);
+CREATE INDEX IF NOT EXISTS idx_profiles_user_type ON profiles(user_type);
 
 -- Create trigger to automatically update updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -61,6 +106,8 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+-- Drop trigger if exists and recreate
+DROP TRIGGER IF EXISTS update_profiles_updated_at ON profiles;
 CREATE TRIGGER update_profiles_updated_at 
     BEFORE UPDATE ON profiles 
     FOR EACH ROW 
@@ -78,14 +125,30 @@ CREATE INDEX IF NOT EXISTS idx_conversations_created_at ON conversations(created
 -- ============================================
 
 -- Add foreign key constraint to conversations
-ALTER TABLE conversation_participants 
-ADD CONSTRAINT fk_conversation_participants_conversation 
-FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'fk_conversation_participants_conversation'
+  ) THEN
+    ALTER TABLE conversation_participants 
+    ADD CONSTRAINT fk_conversation_participants_conversation 
+    FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE;
+  END IF;
+END $$;
 
 -- Add foreign key constraint to profiles
-ALTER TABLE conversation_participants 
-ADD CONSTRAINT fk_conversation_participants_user 
-FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'fk_conversation_participants_user'
+  ) THEN
+    ALTER TABLE conversation_participants 
+    ADD CONSTRAINT fk_conversation_participants_user 
+    FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE;
+  END IF;
+END $$;
 
 -- Add unique constraint to prevent duplicate participants
 CREATE UNIQUE INDEX IF NOT EXISTS idx_conversation_participants_unique 
@@ -106,14 +169,30 @@ CREATE INDEX IF NOT EXISTS idx_conversation_participants_created_at ON conversat
 -- ============================================
 
 -- Add foreign key constraint to conversations
-ALTER TABLE messages 
-ADD CONSTRAINT fk_messages_conversation 
-FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'fk_messages_conversation'
+  ) THEN
+    ALTER TABLE messages 
+    ADD CONSTRAINT fk_messages_conversation 
+    FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE;
+  END IF;
+END $$;
 
 -- Add foreign key constraint to profiles
-ALTER TABLE messages 
-ADD CONSTRAINT fk_messages_sender 
-FOREIGN KEY (sender_id) REFERENCES profiles(id) ON DELETE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'fk_messages_sender'
+  ) THEN
+    ALTER TABLE messages 
+    ADD CONSTRAINT fk_messages_sender 
+    FOREIGN KEY (sender_id) REFERENCES profiles(id) ON DELETE CASCADE;
+  END IF;
+END $$;
 
 -- Add index for conversation messages
 CREATE INDEX IF NOT EXISTS idx_messages_conversation_id ON messages(conversation_id);
@@ -135,14 +214,30 @@ CREATE INDEX IF NOT EXISTS idx_messages_unread ON messages(conversation_id, is_r
 -- ============================================
 
 -- Add foreign key constraint to profiles
-ALTER TABLE result_sheets 
-ADD CONSTRAINT fk_result_sheets_uploader 
-FOREIGN KEY (uploaded_by) REFERENCES profiles(id) ON DELETE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'fk_result_sheets_uploader'
+  ) THEN
+    ALTER TABLE result_sheets 
+    ADD CONSTRAINT fk_result_sheets_uploader 
+    FOREIGN KEY (uploaded_by) REFERENCES profiles(id) ON DELETE CASCADE;
+  END IF;
+END $$;
 
 -- Add foreign key constraint to departments
-ALTER TABLE result_sheets 
-ADD CONSTRAINT fk_result_sheets_department 
-FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE SET NULL;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'fk_result_sheets_department'
+  ) THEN
+    ALTER TABLE result_sheets 
+    ADD CONSTRAINT fk_result_sheets_department 
+    FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE SET NULL;
+  END IF;
+END $$;
 
 -- Add index for uploader filtering
 CREATE INDEX IF NOT EXISTS idx_result_sheets_uploaded_by ON result_sheets(uploaded_by);
@@ -161,7 +256,12 @@ text DEFAULT 'draft' CHECK (status IN ('draft', 'processing', 'completed', 'fail
 CREATE INDEX IF NOT EXISTS idx_result_sheets_status ON result_sheets(status);
 
 -- Remove hardcoded year default, make it dynamic
-ALTER TABLE result_sheets ALTER COLUMN year DROP DEFAULT;
+DO $$
+BEGIN
+  ALTER TABLE result_sheets ALTER COLUMN year DROP DEFAULT;
+EXCEPTION WHEN undefined_column THEN
+  -- Column or default doesn't exist, continue
+END $$;
 ALTER TABLE result_sheets ALTER COLUMN year SET DEFAULT EXTRACT(YEAR FROM NOW())::text;
 
 -- ============================================
@@ -169,9 +269,17 @@ ALTER TABLE result_sheets ALTER COLUMN year SET DEFAULT EXTRACT(YEAR FROM NOW())
 -- ============================================
 
 -- Add foreign key constraint to result_sheets
-ALTER TABLE email_logs 
-ADD CONSTRAINT fk_email_logs_result_sheet 
-FOREIGN KEY (result_sheet_id) REFERENCES result_sheets(id) ON DELETE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'fk_email_logs_result_sheet'
+  ) THEN
+    ALTER TABLE email_logs 
+    ADD CONSTRAINT fk_email_logs_result_sheet 
+    FOREIGN KEY (result_sheet_id) REFERENCES result_sheets(id) ON DELETE CASCADE;
+  END IF;
+END $$;
 
 -- Add index for result_sheet filtering
 CREATE INDEX IF NOT EXISTS idx_email_logs_result_sheet_id ON email_logs(result_sheet_id);
@@ -254,7 +362,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Create trigger for auto-updating sheet counts
+-- Drop trigger if exists and recreate
+DROP TRIGGER IF EXISTS trigger_update_sheet_counts ON email_logs;
 CREATE TRIGGER trigger_update_sheet_counts
     AFTER INSERT OR UPDATE ON email_logs
     FOR EACH ROW

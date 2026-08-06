@@ -94,20 +94,24 @@ export async function POST(request: NextRequest) {
         }
 
         try {
-          // Build email body with the new UI structure
+          // Build email body with dynamic columns from the Excel file
           let bodyContent = `<p>Dear ${name},</p>`
           bodyContent += `<p>Your ${semester} ${year} advising record for ${session} is below:</p>`
           bodyContent += `<table style="border-collapse: collapse; width: 100%; margin: 20px 0;">`
-          bodyContent += `
-            <tr style="border-bottom: 1px solid #eee;">
-              <td style="padding: 8px; font-weight: 600;">Document</td>
-              <td style="padding: 8px;">${row.document || 'Result'}</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #eee;">
-              <td style="padding: 8px; font-weight: 600;">Note</td>
-              <td style="padding: 8px;">${row.note || ''}</td>
-            </tr>
-          `
+          
+          // Include all columns except email
+          columns.forEach((col: string) => {
+            if (col.toLowerCase() !== emailColumn.toLowerCase() && col.toLowerCase() !== nameColumn.toLowerCase()) {
+              const value = row[col] || ''
+              bodyContent += `
+                <tr style="border-bottom: 1px solid #eee;">
+                  <td style="padding: 8px; font-weight: 600; width: 30%;">${col}</td>
+                  <td style="padding: 8px;">${value}</td>
+                </tr>
+              `
+            }
+          })
+          
           bodyContent += `</table>`
           
           if (comment) {
@@ -141,8 +145,6 @@ export async function POST(request: NextRequest) {
               result_sheet_id: sheet_id,
               recipient_email: email,
               student_name: name,
-              document: row.document || 'Result',
-              note: row.note || comment || '',
               status: 'sent',
             })
             console.log(`[SEND-EMAILS] Logged successful email to database`)
@@ -158,8 +160,6 @@ export async function POST(request: NextRequest) {
               result_sheet_id: sheet_id,
               recipient_email: email,
               student_name: name,
-              document: row.document || 'Result',
-              note: row.note || comment || '',
               status: 'failed',
               error: error instanceof Error ? error.message : 'Unknown error',
             })

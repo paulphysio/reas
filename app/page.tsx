@@ -2,18 +2,36 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 
 export default function Home() {
   const router = useRouter()
+  const supabase = createClient()
+  const [loading, setLoading] = useState(true)
   const [landingCarouselIndex, setLandingCarouselIndex] = useState(0)
   const [counterRecords, setCounterRecords] = useState(0)
   const [counterHours, setCounterHours] = useState(0)
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        router.push('/dashboard')
+        router.refresh()
+      } else {
+        setLoading(false)
+      }
+    }
+    checkAuth()
+  }, [supabase, router])
 
   const setLandingCarousel = (i: number) => {
     setLandingCarouselIndex(i)
   }
 
   useEffect(() => {
+    if (loading) return
+
     const carouselTimer = setInterval(() => {
       setLandingCarouselIndex((prev) => (prev + 1) % 3)
     }, 4200)
@@ -33,7 +51,7 @@ export default function Home() {
       clearInterval(carouselTimer)
       clearInterval(counterTimer)
     }
-  }, [])
+  }, [loading])
 
   const goToLogin = () => {
     router.push('/auth/login')
@@ -41,6 +59,14 @@ export default function Home() {
 
   const scrollToHowItWorks = () => {
     document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'oklch(99% 0.004 258)' }}>
+        <div style={{ font: '400 14px system-ui,sans-serif', color: 'oklch(45% 0.02 258)' }}>Loading...</div>
+      </div>
+    )
   }
 
   const fanCards = [

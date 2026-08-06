@@ -22,10 +22,12 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
+  const [userType, setUserType] = useState<'tertiary' | 'secondary'>('tertiary')
   const [schoolId, setSchoolId] = useState('')
   const [customSchoolName, setCustomSchoolName] = useState('')
   const [departmentId, setDepartmentId] = useState('')
   const [customDepartmentName, setCustomDepartmentName] = useState('')
+  const [secondaryDepartment, setSecondaryDepartment] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [schools, setSchools] = useState<School[]>([])
@@ -35,8 +37,16 @@ export default function RegisterPage() {
   const supabase = createClient()
 
   useEffect(() => {
-    fetchSchools()
-  }, [])
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        router.push('/dashboard')
+      } else {
+        fetchSchools()
+      }
+    }
+    checkAuth()
+  }, [supabase, router])
 
   useEffect(() => {
     if (schoolId && schoolId !== 'other') {
@@ -87,30 +97,44 @@ export default function RegisterPage() {
       return
     }
 
-    const isCustomSchool = schoolId === 'other'
-    if (!isCustomSchool && !schoolId) {
-      setError('Please select your institution')
-      setLoading(false)
-      return
-    }
+    if (userType === 'tertiary') {
+      const isCustomSchool = schoolId === 'other'
+      if (!isCustomSchool && !schoolId) {
+        setError('Please select your institution')
+        setLoading(false)
+        return
+      }
 
-    if (isCustomSchool && !customSchoolName.trim()) {
-      setError('Please enter your institution name')
-      setLoading(false)
-      return
-    }
+      if (isCustomSchool && !customSchoolName.trim()) {
+        setError('Please enter your institution name')
+        setLoading(false)
+        return
+      }
 
-    const isCustomDept = departmentId === 'other'
-    if (!isCustomDept && !departmentId) {
-      setError('Please select your department')
-      setLoading(false)
-      return
-    }
+      const isCustomDept = departmentId === 'other'
+      if (!isCustomDept && !departmentId) {
+        setError('Please select your department')
+        setLoading(false)
+        return
+      }
 
-    if (isCustomDept && !customDepartmentName.trim()) {
-      setError('Please enter your department name')
-      setLoading(false)
-      return
+      if (isCustomDept && !customDepartmentName.trim()) {
+        setError('Please enter your department name')
+        setLoading(false)
+        return
+      }
+    } else {
+      if (!customSchoolName.trim()) {
+        setError('Please enter your school name')
+        setLoading(false)
+        return
+      }
+
+      if (!secondaryDepartment) {
+        setError('Please select your department')
+        setLoading(false)
+        return
+      }
     }
 
     const { data, error } = await supabase.auth.signUp({
@@ -119,6 +143,7 @@ export default function RegisterPage() {
       options: {
         data: {
           full_name: fullName,
+          user_type: userType,
         },
       },
     })
@@ -126,20 +151,27 @@ export default function RegisterPage() {
     if (error) {
       setError(error.message)
     } else {
-      // Update profile with school and department
       if (data.user) {
-        const profileData: any = {}
+        const profileData: any = { user_type: userType }
         
-        if (isCustomSchool) {
-          profileData.custom_school_name = customSchoolName.trim()
-        } else {
-          profileData.school_id = schoolId
-        }
+        if (userType === 'tertiary') {
+          const isCustomSchool = schoolId === 'other'
+          const isCustomDept = departmentId === 'other'
+          
+          if (isCustomSchool) {
+            profileData.custom_school_name = customSchoolName.trim()
+          } else {
+            profileData.school_id = schoolId
+          }
 
-        if (isCustomDept) {
-          profileData.custom_department_name = customDepartmentName.trim()
+          if (isCustomDept) {
+            profileData.custom_department_name = customDepartmentName.trim()
+          } else {
+            profileData.department_id = departmentId
+          }
         } else {
-          profileData.department_id = departmentId
+          profileData.custom_school_name = customSchoolName.trim()
+          profileData.custom_department_name = secondaryDepartment
         }
 
         const { error: profileError } = await supabase
@@ -151,7 +183,7 @@ export default function RegisterPage() {
           console.error('Error updating profile:', profileError)
         }
       }
-      router.push('/app')
+      router.push('/dashboard')
       router.refresh()
     }
     setLoading(false)
@@ -168,6 +200,46 @@ export default function RegisterPage() {
         <div style={{ font: '400 13.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', marginBottom: '22px' }}>Sign up to access student records and send tools.</div>
 
         <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div>
+            <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Institution Type</div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => setUserType('tertiary')}
+                style={{
+                  flex: 1,
+                  padding: '10px 12px',
+                  borderRadius: '8px',
+                  border: userType === 'tertiary' ? '2px solid oklch(42% 0.16 258)' : '1px solid oklch(85% 0.02 258)',
+                  background: userType === 'tertiary' ? 'oklch(42% 0.16 258)' : '#fff',
+                  color: userType === 'tertiary' ? '#fff' : 'oklch(45% 0.02 258)',
+                  font: '600 13px system-ui,sans-serif',
+                  cursor: 'pointer',
+                  outline: 'none'
+                }}
+              >
+                Tertiary Institution
+              </button>
+              <button
+                type="button"
+                onClick={() => setUserType('secondary')}
+                style={{
+                  flex: 1,
+                  padding: '10px 12px',
+                  borderRadius: '8px',
+                  border: userType === 'secondary' ? '2px solid oklch(42% 0.16 258)' : '1px solid oklch(85% 0.02 258)',
+                  background: userType === 'secondary' ? 'oklch(42% 0.16 258)' : '#fff',
+                  color: userType === 'secondary' ? '#fff' : 'oklch(45% 0.02 258)',
+                  font: '600 13px system-ui,sans-serif',
+                  cursor: 'pointer',
+                  outline: 'none'
+                }}
+              >
+                Secondary School
+              </button>
+            </div>
+          </div>
+
           <div>
             <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Full Name</div>
             <input
@@ -192,69 +264,82 @@ export default function RegisterPage() {
             />
           </div>
 
-          <div>
-            <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Institution</div>
-            {loadingSchools ? (
-              <div style={{ font: '400 13px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', padding: '10px 12px' }}>Loading institutions...</div>
-            ) : (
-              <>
-                <select
-                  value={schoolId}
-                  onChange={(e) => {
-                    setSchoolId(e.target.value)
-                    if (e.target.value !== 'other') {
-                      setCustomSchoolName('')
-                    }
-                  }}
-                  required
-                  style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none', background: '#fff', marginBottom: schoolId === 'other' ? '8px' : '0' }}
-                >
-                  <option value="">Select your institution</option>
-                  {schools.map((school) => (
-                    <option key={school.id} value={school.id}>
-                      {school.name} ({school.state})
-                    </option>
-                  ))}
-                  <option value="other">Other (outside Nigeria)</option>
-                </select>
-                {schoolId === 'other' && (
-                  <input
-                    type="text"
-                    value={customSchoolName}
-                    onChange={(e) => setCustomSchoolName(e.target.value)}
-                    placeholder="Enter your institution name"
-                    required
-                    style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none' }}
-                  />
+          {userType === 'tertiary' ? (
+            <>
+              <div>
+                <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Institution</div>
+                {loadingSchools ? (
+                  <div style={{ font: '400 13px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', padding: '10px 12px' }}>Loading institutions...</div>
+                ) : (
+                  <>
+                    <select
+                      value={schoolId}
+                      onChange={(e) => {
+                        setSchoolId(e.target.value)
+                        if (e.target.value !== 'other') {
+                          setCustomSchoolName('')
+                        }
+                      }}
+                      required
+                      style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none', background: '#fff', marginBottom: schoolId === 'other' ? '8px' : '0' }}
+                    >
+                      <option value="">Select your institution</option>
+                      {schools.map((school) => (
+                        <option key={school.id} value={school.id}>
+                          {school.name} ({school.state})
+                        </option>
+                      ))}
+                      <option value="other">Other (outside Nigeria)</option>
+                    </select>
+                    {schoolId === 'other' && (
+                      <input
+                        type="text"
+                        value={customSchoolName}
+                        onChange={(e) => setCustomSchoolName(e.target.value)}
+                        placeholder="Enter your institution name"
+                        required
+                        style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none' }}
+                      />
+                    )}
+                  </>
                 )}
-              </>
-            )}
-          </div>
+              </div>
 
-          <div>
-            <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Department</div>
-            {schoolId && schoolId !== 'other' && departments.length > 0 ? (
-              <>
-                <select
-                  value={departmentId}
-                  onChange={(e) => {
-                    setDepartmentId(e.target.value)
-                    if (e.target.value !== 'other') {
-                      setCustomDepartmentName('')
-                    }
-                  }}
-                  required
-                  style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none', background: '#fff', marginBottom: departmentId === 'other' ? '8px' : '0' }}
-                >
-                  <option value="">Select your department</option>
-                  {departments.map((dept) => (
-                    <option key={dept.id} value={dept.id}>
-                      {dept.name} ({dept.code})
-                    </option>
-                  ))}
-                  <option value="other">Other (not listed)</option>
-                </select>
-                {departmentId === 'other' && (
+              <div>
+                <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Department</div>
+                {schoolId && schoolId !== 'other' && departments.length > 0 ? (
+                  <>
+                    <select
+                      value={departmentId}
+                      onChange={(e) => {
+                        setDepartmentId(e.target.value)
+                        if (e.target.value !== 'other') {
+                          setCustomDepartmentName('')
+                        }
+                      }}
+                      required
+                      style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none', background: '#fff', marginBottom: departmentId === 'other' ? '8px' : '0' }}
+                    >
+                      <option value="">Select your department</option>
+                      {departments.map((dept) => (
+                        <option key={dept.id} value={dept.id}>
+                          {dept.name} ({dept.code})
+                        </option>
+                      ))}
+                      <option value="other">Other (not listed)</option>
+                    </select>
+                    {departmentId === 'other' && (
+                      <input
+                        type="text"
+                        value={customDepartmentName}
+                        onChange={(e) => setCustomDepartmentName(e.target.value)}
+                        placeholder="Enter your department name"
+                        required
+                        style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none' }}
+                      />
+                    )}
+                  </>
+                ) : schoolId === 'other' ? (
                   <input
                     type="text"
                     value={customDepartmentName}
@@ -263,29 +348,49 @@ export default function RegisterPage() {
                     required
                     style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none' }}
                   />
+                ) : (
+                  <select
+                    value={departmentId}
+                    onChange={(e) => setDepartmentId(e.target.value)}
+                    required
+                    disabled
+                    style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none', background: '#fff', opacity: 0.6 }}
+                  >
+                    <option value="">Select institution first</option>
+                  </select>
                 )}
-              </>
-            ) : schoolId === 'other' ? (
-              <input
-                type="text"
-                value={customDepartmentName}
-                onChange={(e) => setCustomDepartmentName(e.target.value)}
-                placeholder="Enter your department name"
-                required
-                style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none' }}
-              />
-            ) : (
-              <select
-                value={departmentId}
-                onChange={(e) => setDepartmentId(e.target.value)}
-                required
-                disabled
-                style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none', background: '#fff', opacity: 0.6 }}
-              >
-                <option value="">Select institution first</option>
-              </select>
-            )}
-          </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>School Name</div>
+                <input
+                  type="text"
+                  value={customSchoolName}
+                  onChange={(e) => setCustomSchoolName(e.target.value)}
+                  placeholder="Enter your secondary school name"
+                  required
+                  style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none' }}
+                />
+              </div>
+
+              <div>
+                <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Department</div>
+                <select
+                  value={secondaryDepartment}
+                  onChange={(e) => setSecondaryDepartment(e.target.value)}
+                  required
+                  style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none', background: '#fff' }}
+                >
+                  <option value="">Select your department</option>
+                  <option value="Science">Science</option>
+                  <option value="Commercial">Commercial</option>
+                  <option value="Arts">Arts</option>
+                </select>
+              </div>
+            </>
+          )}
 
           <div>
             <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Password</div>

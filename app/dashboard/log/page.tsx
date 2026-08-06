@@ -45,14 +45,23 @@ export default function LogPage() {
     const { data, error } = await supabase
       .from('result_sheets')
       .select(`
-        *,
-        email_logs(id, status, recipient_email, student_name, error, sent_at)
+        id,
+        filename,
+        session,
+        semester,
+        year,
+        level,
+        created_at,
+        comment,
+        signature,
+        email_logs!fk_email_logs_result_sheet(id, status, recipient_email, student_name, error, sent_at)
       `)
       .eq('uploaded_by', user.id)
       .order('created_at', { ascending: false })
 
     if (error) {
       console.error('Error fetching sheets:', error)
+      console.error('Error details:', JSON.stringify(error, null, 2))
     } else {
       setSheets(data || [])
     }

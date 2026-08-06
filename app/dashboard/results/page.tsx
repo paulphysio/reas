@@ -9,10 +9,33 @@ export default function ResultsPage() {
   const [sessionLog, setSessionLog] = useState<any[]>([])
   const [emailLogs, setEmailLogs] = useState<any[]>([])
   const [resultSheets, setResultSheets] = useState<any[]>([])
+  const [userType, setUserType] = useState<'tertiary' | 'secondary'>('tertiary')
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    loadData()
+    loadUserProfile()
   }, [])
+
+  const loadUserProfile = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('user_type')
+        .eq('id', user.id)
+        .single()
+      if (data) {
+        setUserType(data.user_type || 'tertiary')
+      }
+    }
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    if (!loading) {
+      loadData()
+    }
+  }, [loading])
 
   const loadData = async () => {
     const [logsData, sheetsData] = await Promise.all([
@@ -33,9 +56,11 @@ export default function ResultsPage() {
         const sent = sheetLogs?.filter(l => l.status === 'sent').length || 0
         const failed = sheetLogs?.filter(l => l.status === 'failed').length || 0
         
+        const levelLabel = userType === 'secondary' ? 'Class' : 'Level'
+        
         return {
           id: sheet.id,
-          label: `${sheet.session} · ${sheet.semester} · ${sheet.level}`,
+          label: `${sheet.session} · ${sheet.semester} · ${levelLabel} ${sheet.level}`,
           time: new Date(sheet.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           total: sheet.data?.length || 0,
           sent,
