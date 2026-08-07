@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
                 <h2 style="color: oklch(42% 0.16 258);">Your Advising Record</h2>
                 ${bodyContent}
                 <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
-                <p style="color: #666; font-size: 12px;">This email was sent by Reas - Advising record delivery system.</p>
+                <p style="color: #666; font-size: 12px;">This email was sent by Yuvlex - Advising record delivery system.</p>
               </div>
             `,
           }

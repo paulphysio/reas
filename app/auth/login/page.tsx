@@ -46,8 +46,8 @@ export default function LoginPage() {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', background: 'oklch(99% 0.004 258)' }}>
       <div style={{ width: '380px', maxWidth: '100%', background: '#fff', border: '1px solid oklch(88% 0.02 258)', borderRadius: '14px', padding: '36px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '26px' }}>
-          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'oklch(42% 0.16 258)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', font: '700 16px "Lora",Georgia,serif' }}>R</div>
-          <div style={{ font: '700 19px "Lora",Georgia,serif' }}>Reas</div>
+          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'oklch(42% 0.16 258)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', font: '700 16px "Lora",Georgia,serif' }}><img src="/yuvlex.png" alt="Y" style={{ width: '20px', height: '20px' }} /></div>
+          <div style={{ font: '700 19px "Lora",Georgia,serif' }}>Yuvlex</div>
         </div>
         <div style={{ font: '700 20px "Lora",Georgia,serif', marginBottom: '6px' }}>Adviser sign in</div>
         <div style={{ font: '400 13.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', marginBottom: '22px' }}>Only signed-in advisers can access student records and send tools.</div>

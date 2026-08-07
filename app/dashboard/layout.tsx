@@ -97,8 +97,8 @@ export default function DashboardLayout({
       <div className="md:hidden" style={{ position: 'sticky', top: 0, zIndex: 35, background: 'oklch(28% 0.09 258)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', flex: 'none' }}>
         <div onClick={() => setLeftSidebarOpen(!leftSidebarOpen)} style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'rgba(255,255,255,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', font: '600 16px system-ui,sans-serif', flex: 'none' }}>☰</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-          <div style={{ width: '24px', height: '24px', borderRadius: '6px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'oklch(28% 0.09 258)', font: '700 12px "Lora",Georgia,serif', flex: 'none' }}>R</div>
-          <div style={{ font: '700 15px "Lora",Georgia,serif' }}>Reas</div>
+          <div style={{ width: '24px', height: '24px', borderRadius: '6px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'oklch(28% 0.09 258)', font: '700 12px "Lora",Georgia,serif', flex: 'none' }}><img src="/yuvlex.png" alt="Y" style={{ width: '16px', height: '16px' }} /></div>
+          <div style={{ font: '700 15px "Lora",Georgia,serif' }}>Yuvlex</div>
         </div>
         <div onClick={() => setRightSidebarOpen(!rightSidebarOpen)} style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', font: '700 12px system-ui,sans-serif', flex: 'none' }}>
           {advisorInitials}
@@ -109,7 +109,7 @@ export default function DashboardLayout({
       {/* <div className="hidden md:flex" style={{ position: 'sticky', top: 0, zIndex: 35, background: '#fff', borderBottom: '1px solid oklch(88% 0.02 258)', padding: '12px 20px', alignItems: 'center', justifyContent: 'space-between', flex: 'none' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div onClick={() => setLeftSidebarOpen(!leftSidebarOpen)} style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'oklch(94% 0.015 258)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', font: '600 14px system-ui,sans-serif', flex: 'none' }}>☰</div>
-          <div style={{ font: '700 16px "Lora",Georgia,serif' }}>Reas Dashboard</div>
+          <div style={{ font: '700 16px "Lora",Georgia,serif' }}>Yuvlex Dashboard</div>
         </div>
         <div onClick={() => setRightSidebarOpen(!rightSidebarOpen)} style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'oklch(94% 0.015 258)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', font: '600 13px system-ui,sans-serif', flex: 'none' }}>
           {advisorInitials}
@@ -121,8 +121,8 @@ export default function DashboardLayout({
         {leftSidebarOpen && (
           <div className="hidden md:block" style={{ flex: 'none', background: 'oklch(28% 0.09 258)', color: '#fff', display: 'flex', flexDirection: 'column', padding: '26px 18px', width: '236px', position: 'sticky', top: 0, height: '100vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0 6px 28px', cursor: 'pointer' }}>
-              <div style={{ width: '30px', height: '30px', borderRadius: '7px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'oklch(28% 0.09 258)', font: '700 15px "Lora",Georgia,serif', flex: 'none' }}>R</div>
-              <div style={{ font: '700 17px "Lora",Georgia,serif', whiteSpace: 'nowrap' }}>Reas</div>
+              <div style={{ width: '30px', height: '30px', borderRadius: '7px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'oklch(28% 0.09 258)', font: '700 15px "Lora",Georgia,serif', flex: 'none' }}><img src="/yuvlex.png" alt="Y" style={{ width: '20px', height: '20px' }} /></div>
+              <div style={{ font: '700 17px "Lora",Georgia,serif', whiteSpace: 'nowrap' }}>Yuvlex</div>
             </div>
 
             {navItems.map((nav) => {

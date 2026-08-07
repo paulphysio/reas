@@ -110,10 +110,10 @@ export default function Home() {
       {/* Header */}
       <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'oklch(99% 0.004 258 / 0.92)', backdropFilter: 'blur(8px)', borderBottom: '1px solid ' + 'var(--reas-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px clamp(16px,4vw,48px)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'oklch(42% 0.16 258)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', font: '700 16px "Lora",Georgia,serif' }}>R</div>
-          <div style={{ font: '700 19px "Lora",Georgia,serif', letterSpacing: '-0.01em' }}>Reas</div>
+          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'oklch(42% 0.16 258)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', font: '700 16px "Lora",Georgia,serif' }}><img src="/yuvlex.png" alt="Y" style={{ width: '20px', height: '20px' }} /></div>
+          <div style={{ font: '700 19px "Lora",Georgia,serif', letterSpacing: '-0.01em' }}>Yuvlex</div>
         </div>
-        <div onClick={goToLogin} className="reas-btn-primary" style={{ background: 'oklch(42% 0.16 258)', color: '#fff', font: '600 14px system-ui,sans-serif', padding: '10px 20px', borderRadius: '7px', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>Open Reas</div>
+        <div onClick={goToLogin} className="reas-btn-primary" style={{ background: 'oklch(42% 0.16 258)', color: '#fff', font: '600 14px system-ui,sans-serif', padding: '10px 20px', borderRadius: '7px', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>Open Yuvlex</div>
       </div>
 
       {/* Hero Section */}
@@ -128,9 +128,9 @@ export default function Home() {
             </div>
             <div style={{ font: '700 clamp(38px,8vw,68px)/1.05 system-ui,sans-serif', letterSpacing: '-0.025em', marginBottom: '2px' }}>One sheet.</div>
             <div style={{ font: '700 clamp(38px,8vw,68px)/1.05 system-ui,sans-serif', letterSpacing: '-0.025em', marginBottom: '26px' }}>Every <span style={{ background: 'oklch(42% 0.16 258)', color: '#fff', padding: '0 10px', borderRadius: '6px', display: 'inline-block', whiteSpace: 'nowrap' }}>inbox.</span></div>
-            <div style={{ font: '400 17px/1.6 system-ui,sans-serif', color: 'var(--reas-muted)', maxWidth: '440px', marginBottom: '32px' }}>Reas turns one advising sheet into individual emails — each student gets their document the moment it's ready. Nothing from the sheet is ever kept.</div>
+            <div style={{ font: '400 17px/1.6 system-ui,sans-serif', color: 'var(--reas-muted)', maxWidth: '440px', marginBottom: '32px' }}>Yuvlex turns one advising sheet into individual emails — each student gets their document the moment it's ready. Nothing from the sheet is ever kept.</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center', marginBottom: '30px' }}>
-              <div onClick={goToLogin} className="reas-btn-primary" style={{ background: 'oklch(42% 0.16 258)', color: '#fff', font: '600 15px system-ui,sans-serif', padding: '14px 28px', borderRadius: '8px', cursor: 'pointer', whiteSpace: 'nowrap' }}>Open Reas</div>
+              <div onClick={goToLogin} className="reas-btn-primary" style={{ background: 'oklch(42% 0.16 258)', color: '#fff', font: '600 15px system-ui,sans-serif', padding: '14px 28px', borderRadius: '8px', cursor: 'pointer', whiteSpace: 'nowrap' }}>Open Yuvlex</div>
               <div onClick={scrollToHowItWorks} style={{ background: 'transparent', color: 'oklch(22% 0.035 258)', border: '1px solid ' + 'var(--reas-border)', font: '600 15px system-ui,sans-serif', padding: '14px 28px', borderRadius: '8px', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>See how it works</div>
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '22px', font: '600 13px system-ui,sans-serif', color: 'var(--reas-muted)' }}>
@@ -214,11 +214,11 @@ export default function Home() {
           <div>
             <div style={{ font: '700 15px "Lora",Georgia,serif', color: 'oklch(42% 0.16 258)', marginBottom: '10px' }}>01</div>
             <div style={{ font: '600 16px system-ui,sans-serif', marginBottom: '8px' }}>Upload the sheet</div>
-            <div style={{ font: '400 14.5px/1.6 system-ui,sans-serif', color: 'var(--reas-muted)' }}>Drop in the term's advising export. Reas reads every row.</div>
+            <div style={{ font: '400 14.5px/1.6 system-ui,sans-serif', color: 'var(--reas-muted)' }}>Drop in the term's advising export. Yuvlex reads every row.</div>
           </div>
           <div>
             <div style={{ font: '700 15px "Lora",Georgia,serif', color: 'oklch(42% 0.16 258)', marginBottom: '10px' }}>02</div>
-            <div style={{ font: '600 16px system-ui,sans-serif', marginBottom: '8px' }}>Reas sends each record</div>
+            <div style={{ font: '600 16px system-ui,sans-serif', marginBottom: '8px' }}>Yuvlex sends each record</div>
             <div style={{ font: '400 14.5px/1.6 system-ui,sans-serif', color: 'var(--reas-muted)' }}>Every row becomes one email, addressed to that student, with their document attached.</div>
           </div>
           <div>
@@ -249,7 +249,7 @@ export default function Home() {
                 <div>✓ No data stored, ever</div>
                 <div>✓ Year/term/session/class filters</div>
               </div>
-              <div onClick={goToLogin} style={{ background: '#fff', color: 'oklch(42% 0.16 258)', textAlign: 'center', padding: '12px', borderRadius: '8px', cursor: 'pointer', font: '600 14px system-ui,sans-serif' }}>Open Reas</div>
+              <div onClick={goToLogin} style={{ background: '#fff', color: 'oklch(42% 0.16 258)', textAlign: 'center', padding: '12px', borderRadius: '8px', cursor: 'pointer', font: '600 14px system-ui,sans-serif' }}>Open Yuvlex</div>
             </div>
 
             <div style={{ background: '#fff', border: '1px solid ' + 'var(--reas-border)', borderRadius: '14px', padding: '32px' }}>
@@ -276,9 +276,9 @@ export default function Home() {
           <div style={{ position: 'absolute', bottom: '-120px', right: '-60px', width: '280px', height: '280px', borderRadius: '50%', background: '#fff', opacity: '0.08', animation: 'reas-drift-b 12s ease-in-out infinite' }}></div>
           <div style={{ position: 'relative', zIndex: 1 }}>
             <div style={{ font: '700 clamp(28px,6vw,40px)/1.15 system-ui,sans-serif', color: '#fff', letterSpacing: '-0.02em', marginBottom: '14px' }}>Ready to stop sending<br />records one by one?</div>
-            <div style={{ font: '400 16px/1.6 system-ui,sans-serif', color: 'oklch(92% 0.02 258)', maxWidth: '480px', margin: '0 auto 30px' }}>Upload this term's sheet and let Reas reach every student's inbox — nothing is ever stored.</div>
+            <div style={{ font: '400 16px/1.6 system-ui,sans-serif', color: 'oklch(92% 0.02 258)', maxWidth: '480px', margin: '0 auto 30px' }}>Upload this term's sheet and let Yuvlex reach every student's inbox — nothing is ever stored.</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center', justifyContent: 'center' }}>
-              <div onClick={goToLogin} style={{ background: '#fff', color: 'oklch(42% 0.16 258)', font: '600 15px system-ui,sans-serif', padding: '14px 28px', borderRadius: '8px', cursor: 'pointer', whiteSpace: 'nowrap' }}>Open Reas</div>
+              <div onClick={goToLogin} style={{ background: '#fff', color: 'oklch(42% 0.16 258)', font: '600 15px system-ui,sans-serif', padding: '14px 28px', borderRadius: '8px', cursor: 'pointer', whiteSpace: 'nowrap' }}>Open Yuvlex</div>
               <div onClick={scrollToHowItWorks} style={{ background: 'transparent', color: '#fff', border: '1px solid oklch(90% 0.02 258 / 0.4)', font: '600 15px system-ui,sans-serif', padding: '14px 28px', borderRadius: '8px', cursor: 'pointer', whiteSpace: 'nowrap' }}>See how it works</div>
             </div>
           </div>
@@ -291,8 +291,8 @@ export default function Home() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '40px', marginBottom: '44px' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-                <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: 'oklch(42% 0.16 258)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', font: '700 14px "Lora",Georgia,serif' }}>R</div>
-                <div style={{ font: '700 16px "Lora",Georgia,serif' }}>Reas</div>
+                <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: 'oklch(42% 0.16 258)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', font: '700 14px "Lora",Georgia,serif' }}><img src="/yuvlex.png" alt="Y" style={{ width: '18px', height: '18px' }} /></div>
+                <div style={{ font: '700 16px "Lora",Georgia,serif' }}>Yuvlex</div>
               </div>
               <div style={{ font: '400 13.5px/1.6 system-ui,sans-serif', color: 'var(--reas-muted)', maxWidth: '280px' }}>Sends each row of an advising sheet to its student as an email, then discards the sheet. Nothing is ever stored.</div>
             </div>
@@ -300,7 +300,7 @@ export default function Home() {
               <div style={{ font: '600 12px system-ui,sans-serif', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--reas-muted)', marginBottom: '14px' }}>Product</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', font: '400 14px system-ui,sans-serif' }}>
                 <a href="#how-it-works" style={{ color: 'oklch(22% 0.035 258)', textDecoration: 'none' }}>How it works</a>
-                <div onClick={goToLogin} style={{ color: 'oklch(22% 0.035 258)', cursor: 'pointer' }}>Open Reas</div>
+                <div onClick={goToLogin} style={{ color: 'oklch(22% 0.035 258)', cursor: 'pointer' }}>Open Yuvlex</div>
               </div>
             </div>
             <div>
@@ -311,7 +311,7 @@ export default function Home() {
             </div>
           </div>
           <div style={{ borderTop: '1px solid ' + 'var(--reas-border)', paddingTop: '22px', display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ font: '600 13px system-ui,sans-serif', color: 'var(--reas-muted)' }}>Reas · Advising record delivery</div>
+            <div style={{ font: '600 13px system-ui,sans-serif', color: 'var(--reas-muted)' }}>Yuvlex · Advising record delivery</div>
             <div style={{ font: '400 13px system-ui,sans-serif', color: 'var(--reas-muted)' }}>Files are never stored or logged after sending.</div>
           </div>
         </div>
