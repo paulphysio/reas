@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
 export default function Home() {
@@ -13,17 +14,8 @@ export default function Home() {
   const [counterHours, setCounterHours] = useState(0)
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        router.push('/dashboard')
-        router.refresh()
-      } else {
-        setLoading(false)
-      }
-    }
-    checkAuth()
-  }, [supabase, router])
+    setLoading(false)
+  }, [])
 
   const setLandingCarousel = (i: number) => {
     setLandingCarouselIndex(i)
@@ -108,9 +100,9 @@ export default function Home() {
   return (
     <div style={{ minHeight: '100vh', background: 'oklch(99% 0.004 258)', color: 'oklch(22% 0.035 258)', '--reas-text': 'oklch(22% 0.035 258)', '--reas-card': '#fff', '--reas-bg': 'oklch(99% 0.004 258)', '--reas-border': 'oklch(88% 0.02 258)', '--reas-muted': 'oklch(45% 0.02 258)', '--reas-divider': 'oklch(94% 0.015 258)', '--reas-tablehead': 'oklch(96% 0.015 258)' } as React.CSSProperties}>
       {/* Header */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'oklch(99% 0.004 258 / 0.92)', backdropFilter: 'blur(8px)', borderBottom: '1px solid ' + 'var(--reas-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px clamp(16px,4vw,48px)' }}>
+      <div style={{ position: 'sticky', top: 0, zIndex: 10, background: '#fff', borderBottom: '1px solid oklch(88% 0.02 258)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px clamp(16px,4vw,48px)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'oklch(42% 0.16 258)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', font: '700 16px "Lora",Georgia,serif' }}><img src="/yuvlex.png" alt="Y" style={{ width: '20px', height: '20px' }} /></div>
+          <div style={{ width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><img src="/yuvlex.png" alt="Y" style={{ width: '32px', height: '32px' }} /></div>
           <div style={{ font: '700 19px "Lora",Georgia,serif', letterSpacing: '-0.01em' }}>Yuvlex</div>
         </div>
         <div onClick={goToLogin} className="reas-btn-primary" style={{ background: 'oklch(42% 0.16 258)', color: '#fff', font: '600 14px system-ui,sans-serif', padding: '10px 20px', borderRadius: '7px', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>Open Yuvlex</div>
@@ -263,7 +255,9 @@ export default function Home() {
                 <div>✓ Ongoing hosting & maintenance by us</div>
                 <div>✓ Priority support</div>
               </div>
-              <div style={{ background: 'transparent', border: '1px solid ' + 'var(--reas-border)', color: 'oklch(22% 0.035 258)', textAlign: 'center', padding: '12px', borderRadius: '8px', cursor: 'pointer', font: '600 14px system-ui,sans-serif' }}>Contact us</div>
+              <Link href="/support" style={{ background: 'transparent', border: '1px solid ' + 'var(--reas-border)', color: 'oklch(22% 0.035 258)', textAlign: 'center', padding: '12px', borderRadius: '8px', cursor: 'pointer', font: '600 14px system-ui,sans-serif', textDecoration: 'none' }}>
+                Contact us
+              </Link>
             </div>
           </div>
         </div>
@@ -291,7 +285,7 @@ export default function Home() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '40px', marginBottom: '44px' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-                <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: 'oklch(42% 0.16 258)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', font: '700 14px "Lora",Georgia,serif' }}><img src="/yuvlex.png" alt="Y" style={{ width: '18px', height: '18px' }} /></div>
+                <div style={{ width: '28px', height: '28px', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><img src="/yuvlex.png" alt="Y" style={{ width: '28px', height: '28px' }} /></div>
                 <div style={{ font: '700 16px "Lora",Georgia,serif' }}>Yuvlex</div>
               </div>
               <div style={{ font: '400 13.5px/1.6 system-ui,sans-serif', color: 'var(--reas-muted)', maxWidth: '280px' }}>Sends each row of an advising sheet to its student as an email, then discards the sheet. Nothing is ever stored.</div>
@@ -306,7 +300,7 @@ export default function Home() {
             <div>
               <div style={{ font: '600 12px system-ui,sans-serif', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--reas-muted)', marginBottom: '14px' }}>Contact</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', font: '400 14px system-ui,sans-serif', color: 'oklch(22% 0.035 258)' }}>
-                <div>support@reas.app</div>
+                <a href="mailto:support@yuvlex.com" style={{ color: 'oklch(22% 0.035 258)', textDecoration: 'none' }}>support@yuvlex.com</a>
               </div>
             </div>
           </div>

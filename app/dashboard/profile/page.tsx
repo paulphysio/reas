@@ -24,7 +24,7 @@ export default function ProfilePage() {
   const [customSchool, setCustomSchool] = useState('')
   const [departmentId, setDepartmentId] = useState('')
   const [customDepartment, setCustomDepartment] = useState('')
-  const [secondaryDepartment, setSecondaryDepartment] = useState('')
+  const [secondaryClass, setSecondaryClass] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [schools, setSchools] = useState<School[]>([])
@@ -78,7 +78,7 @@ export default function ProfilePage() {
           setCustomDepartment(data.custom_department_name || '')
           
           if (data.user_type === 'secondary' && data.custom_department_name) {
-            setSecondaryDepartment(data.custom_department_name)
+            setSecondaryClass(data.custom_department_name)
           }
           
           if (data.school_id) {
@@ -126,7 +126,7 @@ export default function ProfilePage() {
       } else {
         updateData.custom_school_name = customSchool.trim()
         updateData.school_id = null
-        updateData.custom_department_name = secondaryDepartment
+        updateData.custom_department_name = secondaryClass
         updateData.department_id = null
       }
 
@@ -501,7 +501,7 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label htmlFor="department" style={{ 
+                <label htmlFor="class" style={{ 
                   display: 'block', 
                   font: '600 11px system-ui,sans-serif', 
                   letterSpacing: '0.05em', 
@@ -509,12 +509,12 @@ export default function ProfilePage() {
                   color: 'var(--reas-muted)',
                   marginBottom: '8px'
                 }}>
-                  Department
+                  Class
                 </label>
                 <select
-                  id="department"
-                  value={secondaryDepartment}
-                  onChange={(e) => setSecondaryDepartment(e.target.value)}
+                  id="class"
+                  value={secondaryClass}
+                  onChange={(e) => setSecondaryClass(e.target.value)}
                   disabled={loading}
                   style={{
                     width: '100%',
@@ -527,10 +527,13 @@ export default function ProfilePage() {
                     outline: 'none'
                   }}
                 >
-                  <option value="">Select your department</option>
-                  <option value="Science">Science</option>
-                  <option value="Commercial">Commercial</option>
-                  <option value="Arts">Arts</option>
+                  <option value="">Select your class</option>
+                  <option value="JSS1">JSS1</option>
+                  <option value="JSS2">JSS2</option>
+                  <option value="JSS3">JSS3</option>
+                  <option value="SS1">SS1</option>
+                  <option value="SS2">SS2</option>
+                  <option value="SS3">SS3</option>
                 </select>
               </div>
             </>

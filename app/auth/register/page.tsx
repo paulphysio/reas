@@ -27,7 +27,7 @@ export default function RegisterPage() {
   const [customSchoolName, setCustomSchoolName] = useState('')
   const [departmentId, setDepartmentId] = useState('')
   const [customDepartmentName, setCustomDepartmentName] = useState('')
-  const [secondaryDepartment, setSecondaryDepartment] = useState('')
+  const [secondaryClass, setSecondaryClass] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [schools, setSchools] = useState<School[]>([])
@@ -130,8 +130,8 @@ export default function RegisterPage() {
         return
       }
 
-      if (!secondaryDepartment) {
-        setError('Please select your department')
+      if (!secondaryClass) {
+        setError('Please select your class')
         setLoading(false)
         return
       }
@@ -171,7 +171,7 @@ export default function RegisterPage() {
           }
         } else {
           profileData.custom_school_name = customSchoolName.trim()
-          profileData.custom_department_name = secondaryDepartment
+          profileData.custom_department_name = secondaryClass
         }
 
         const { error: profileError } = await supabase
@@ -193,7 +193,7 @@ export default function RegisterPage() {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', background: 'oklch(99% 0.004 258)' }}>
       <div style={{ width: '100%', maxWidth: '380px', background: '#fff', border: '1px solid oklch(88% 0.02 258)', borderRadius: '14px', padding: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '26px' }}>
-          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'oklch(42% 0.16 258)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', font: '700 16px "Lora",Georgia,serif' }}><img src="/yuvlex.png" alt="Y" style={{ width: '20px', height: '20px' }} /></div>
+          <div style={{ width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><img src="/yuvlex.png" alt="Y" style={{ width: '32px', height: '32px' }} /></div>
           <div style={{ font: '700 19px "Lora",Georgia,serif' }}>Yuvlex</div>
         </div>
         <div style={{ font: '700 20px "Lora",Georgia,serif', marginBottom: '6px' }}>Create adviser account</div>
@@ -376,17 +376,20 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Department</div>
+                <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Class</div>
                 <select
-                  value={secondaryDepartment}
-                  onChange={(e) => setSecondaryDepartment(e.target.value)}
+                  value={secondaryClass}
+                  onChange={(e) => setSecondaryClass(e.target.value)}
                   required
                   style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none', background: '#fff' }}
                 >
-                  <option value="">Select your department</option>
-                  <option value="Science">Science</option>
-                  <option value="Commercial">Commercial</option>
-                  <option value="Arts">Arts</option>
+                  <option value="">Select your class</option>
+                  <option value="JSS1">JSS1</option>
+                  <option value="JSS2">JSS2</option>
+                  <option value="JSS3">JSS3</option>
+                  <option value="SS1">SS1</option>
+                  <option value="SS2">SS2</option>
+                  <option value="SS3">SS3</option>
                 </select>
               </div>
             </>

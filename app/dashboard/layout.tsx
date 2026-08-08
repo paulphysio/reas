@@ -94,13 +94,13 @@ export default function DashboardLayout({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'oklch(99% 0.004 258)', color: 'oklch(22% 0.035 258)', '--reas-text': 'oklch(22% 0.035 258)', '--reas-card': '#fff', '--reas-bg': 'oklch(99% 0.004 258)', '--reas-border': 'oklch(88% 0.02 258)', '--reas-muted': 'oklch(45% 0.02 258)', '--reas-divider': 'oklch(94% 0.015 258)', '--reas-tablehead': 'oklch(96% 0.015 258)' } as React.CSSProperties}>
       {/* Mobile Header */}
-      <div className="md:hidden" style={{ position: 'sticky', top: 0, zIndex: 35, background: 'oklch(28% 0.09 258)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', flex: 'none' }}>
-        <div onClick={() => setLeftSidebarOpen(!leftSidebarOpen)} style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'rgba(255,255,255,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', font: '600 16px system-ui,sans-serif', flex: 'none' }}>☰</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-          <div style={{ width: '24px', height: '24px', borderRadius: '6px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'oklch(28% 0.09 258)', font: '700 12px "Lora",Georgia,serif', flex: 'none' }}><img src="/yuvlex.png" alt="Y" style={{ width: '16px', height: '16px' }} /></div>
+      <div className="md:hidden" style={{ position: 'sticky', top: 0, zIndex: 35, background: '#fff', borderBottom: '1px solid oklch(88% 0.02 258)', color: 'oklch(22% 0.035 258)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', flex: 'none' }}>
+        <div onClick={() => setLeftSidebarOpen(!leftSidebarOpen)} style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'oklch(94% 0.015 258)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', font: '600 16px system-ui,sans-serif', flex: 'none', color: 'oklch(22% 0.035 258)' }}>☰</div>
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', textDecoration: 'none', color: 'oklch(22% 0.035 258)' }}>
+          <div style={{ width: '24px', height: '24px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><img src="/yuvlex.png" alt="Y" style={{ width: '24px', height: '24px' }} /></div>
           <div style={{ font: '700 15px "Lora",Georgia,serif' }}>Yuvlex</div>
-        </div>
-        <div onClick={() => setRightSidebarOpen(!rightSidebarOpen)} style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', font: '700 12px system-ui,sans-serif', flex: 'none' }}>
+        </Link>
+        <div onClick={() => setRightSidebarOpen(!rightSidebarOpen)} style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'oklch(94% 0.015 258)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', font: '700 12px system-ui,sans-serif', flex: 'none', color: 'oklch(22% 0.035 258)' }}>
           {advisorInitials}
         </div>
       </div>
@@ -120,10 +120,10 @@ export default function DashboardLayout({
         {/* Desktop Sidebar */}
         {leftSidebarOpen && (
           <div className="hidden md:block" style={{ flex: 'none', background: 'oklch(28% 0.09 258)', color: '#fff', display: 'flex', flexDirection: 'column', padding: '26px 18px', width: '236px', position: 'sticky', top: 0, height: '100vh', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0 6px 28px', cursor: 'pointer' }}>
-              <div style={{ width: '30px', height: '30px', borderRadius: '7px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'oklch(28% 0.09 258)', font: '700 15px "Lora",Georgia,serif', flex: 'none' }}><img src="/yuvlex.png" alt="Y" style={{ width: '20px', height: '20px' }} /></div>
+            <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0 6px 28px', cursor: 'pointer', textDecoration: 'none', color: '#fff' }}>
+              <div style={{ width: '30px', height: '30px', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><img src="/yuvlex.png" alt="Y" style={{ width: '30px', height: '30px' }} /></div>
               <div style={{ font: '700 17px "Lora",Georgia,serif', whiteSpace: 'nowrap' }}>Yuvlex</div>
-            </div>
+            </Link>
 
             {navItems.map((nav) => {
               const isActive = currentPath === nav.href || (nav.href !== '/dashboard' && currentPath.startsWith(nav.href))

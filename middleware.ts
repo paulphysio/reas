@@ -28,8 +28,8 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Allow public access to home page, login, and register
-  const publicPaths = ['/', '/auth/login', '/auth/register']
+  // Allow public access to home page, login, register, support, faq, and pricing
+  const publicPaths = ['/', '/auth/login', '/auth/register', '/support', '/faq', '/pricing']
   const isPublicPath = publicPaths.includes(request.nextUrl.pathname)
 
   if (!user && !isPublicPath) {
