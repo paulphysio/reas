@@ -28,6 +28,7 @@ export default function RegisterPage() {
   const [departmentId, setDepartmentId] = useState('')
   const [customDepartmentName, setCustomDepartmentName] = useState('')
   const [secondaryClass, setSecondaryClass] = useState('')
+  const [accessCode, setAccessCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [schools, setSchools] = useState<School[]>([])
@@ -137,6 +138,22 @@ export default function RegisterPage() {
       }
     }
 
+    if (!accessCode.trim()) {
+      setError('Please enter your access code')
+      setLoading(false)
+      return
+    }
+
+    // Validate access code
+    const { data: codeValidation, error: codeError } = await supabase
+      .rpc('validate_access_code', { p_code: accessCode.trim() })
+
+    if (codeError || !codeValidation || codeValidation.length === 0 || !codeValidation[0].is_valid) {
+      setError('Invalid or expired access code')
+      setLoading(false)
+      return
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -181,6 +198,14 @@ export default function RegisterPage() {
         
         if (profileError) {
           console.error('Error updating profile:', profileError)
+        }
+
+        // Mark access code as used
+        const { error: useCodeError } = await supabase
+          .rpc('use_access_code', { p_code: accessCode.trim(), p_user_id: data.user.id })
+        
+        if (useCodeError) {
+          console.error('Error marking access code as used:', useCodeError)
         }
       }
       router.push('/dashboard')
@@ -394,6 +419,18 @@ export default function RegisterPage() {
               </div>
             </>
           )}
+
+          <div>
+            <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Access Code</div>
+            <input
+              type="text"
+              value={accessCode}
+              onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
+              placeholder="XXXX-XXXX-XXXX"
+              required
+              style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none', textTransform: 'uppercase' }}
+            />
+          </div>
 
           <div>
             <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Password</div>

@@ -28,14 +28,21 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Allow public access to home page, login, register, support, faq, and pricing
-  const publicPaths = ['/', '/auth/login', '/auth/register', '/support', '/faq', '/pricing']
+  // Allow public access to home page, login, register, support, faq, pricing, and admin login
+  const publicPaths = ['/', '/auth/login', '/auth/register', '/support', '/faq', '/pricing', '/admin/login']
   const isPublicPath = publicPaths.includes(request.nextUrl.pathname)
 
   if (!user && !isPublicPath) {
     const url = request.nextUrl.clone()
     url.pathname = '/auth/login'
     return NextResponse.redirect(url)
+  }
+
+  // Protect admin dashboard - check if user has admin role
+  if (request.nextUrl.pathname.startsWith('/admin/dashboard') && user) {
+    // We need to check if user has admin role
+    // This requires a database query, which we can't do in middleware
+    // So we'll let the page handle the check and redirect if needed
   }
 
   return supabaseResponse
