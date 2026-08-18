@@ -15,7 +15,7 @@ export default function FeedbackPage() {
     <div style={{ maxWidth: '560px', background: '#fff', border: '1px solid oklch(88% 0.02 258)', borderRadius: '12px', padding: '28px' }}>
       <div style={{ font: '700 18px "Lora",Georgia,serif', marginBottom: '8px' }}>Send feedback</div>
       <div style={{ font: '400 13.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', marginBottom: '18px' }}>
-        Tell us what would make Reas more useful for your office.
+        Tell us what would make Yuvlex more useful for your office.
       </div>
       
       {submitted ? (

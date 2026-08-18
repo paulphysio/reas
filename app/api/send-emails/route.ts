@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
           }
 
           const mailOptions = {
-            from: process.env.SMTP_FROM || 'noreply@reas.app',
+            from: process.env.SMTP_FROM || 'noreply@Yuvlex.app',
             to: email,
             subject: `Your ${semester} ${year} Advising Record`,
             html: `
@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
             })
           }
 
-          return { rowId: row.id, status: 'failed', reason: error instanceof Error ? error.message : 'Unknown error' }
+          return { rowId: row.id, status: 'failed', Yuvlexon: error instanceof Error ? error.message : 'Unknown error' }
         }
       })
     )
@@ -211,7 +211,7 @@ export async function POST(request: NextRequest) {
 
     const detailedResults = results.map((r, i) => {
       if (r.status === 'fulfilled') {
-        return { id: rows[i].id, status: r.value.status, error: r.value.reason || '' }
+        return { id: rows[i].id, status: r.value.status, error: r.value.Yuvlexon || '' }
       }
       return { id: rows[i].id, status: 'failed', error: 'Promise rejected' }
     })

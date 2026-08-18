@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     note: row.Note || row.note || '',
     validation: (row.Email || row.email) ? 'ready' : 'missing-email',
     result: undefined,
-    failReason: ''
+    failYuvlexon: ''
   }))
 
   // Save to database but don't keep file on disk

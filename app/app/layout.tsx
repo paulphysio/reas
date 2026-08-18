@@ -302,7 +302,7 @@ export default function AppLayout({
       <div className="md:hidden fixed top-0 left-0 right-0 z-50" style={{ background: 'oklch(28% 0.09 258)', color: '#fff', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', textDecoration: 'none', color: '#fff' }}>
           <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'oklch(28% 0.09 258)', font: '700 14px "Lora",Georgia,serif' }}>R</div>
-          <div style={{ font: '700 16px "Lora",Georgia,serif' }}>Reas</div>
+          <div style={{ font: '700 16px "Lora",Georgia,serif' }}>Yuvlex</div>
         </Link>
         <button onClick={() => setSettingsOpen(!settingsOpen)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '8px' }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

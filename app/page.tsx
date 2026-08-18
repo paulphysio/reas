@@ -298,6 +298,15 @@ export default function Home() {
               </div>
             </div>
             <div>
+              <div style={{ font: '600 12px system-ui,sans-serif', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--reas-muted)', marginBottom: '14px' }}>Resources</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', font: '400 14px system-ui,sans-serif' }}>
+                <Link href="/nigeria-education" style={{ color: 'oklch(22% 0.035 258)', textDecoration: 'none' }}>Nigerian Education Directory</Link>
+                <Link href="/academic-result-management" style={{ color: 'oklch(22% 0.035 258)', textDecoration: 'none' }}>Academic Result Management</Link>
+                <Link href="/faq" style={{ color: 'oklch(22% 0.035 258)', textDecoration: 'none' }}>FAQ</Link>
+                <Link href="/support" style={{ color: 'oklch(22% 0.035 258)', textDecoration: 'none' }}>Support</Link>
+              </div>
+            </div>
+            <div>
               <div style={{ font: '600 12px system-ui,sans-serif', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--reas-muted)', marginBottom: '14px' }}>Contact</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', font: '400 14px system-ui,sans-serif', color: 'oklch(22% 0.035 258)' }}>
                 <a href="mailto:support@yuvlex.com" style={{ color: 'oklch(22% 0.035 258)', textDecoration: 'none' }}>support@yuvlex.com</a>
