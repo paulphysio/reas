@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     console.log('[SEND-EMAILS] User authenticated:', user.id)
 
     const body = await request.json()
-    const { rows, sheet_id, columns, emailColumn, year, semester, session, level, comment, signature } = body
+    const { rows, sheet_id, columns, emailColumn, year, semester, session, comment, signature } = body
 
     console.log('[SEND-EMAILS] Request body:', { 
       rowsCount: rows?.length, 
@@ -82,9 +82,9 @@ export async function POST(request: NextRequest) {
     // Send emails and log each attempt
     console.log('[SEND-EMAILS] Starting to send', rows.length, 'emails')
     const results = await Promise.allSettled(
-      rows.map(async (row: any, index: number) => {
-        const email = row[emailColumn]
-        const name = row[nameColumn] || 'Student'
+      rows.map(async (row: Record<string, unknown>, index: number) => {
+        const email = String(row[emailColumn] ?? '')
+        const name = String(row[nameColumn] ?? 'Student') || 'Student'
         
         console.log(`[SEND-EMAILS] Processing row ${index + 1}/${rows.length}:`, { email, name })
         
@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
             })
           }
 
-          return { rowId: row.id, status: 'failed', Yuvlexon: error instanceof Error ? error.message : 'Unknown error' }
+          return { rowId: row.id, status: 'failed', reason: error instanceof Error ? error.message : 'Unknown error' }
         }
       })
     )
@@ -211,9 +211,9 @@ export async function POST(request: NextRequest) {
 
     const detailedResults = results.map((r, i) => {
       if (r.status === 'fulfilled') {
-        return { id: rows[i].id, status: r.value.status, error: r.value.Yuvlexon || '' }
+        return { id: rows[i].id, rowId: rows[i].id, status: r.value.status, reason: r.value.reason || '', error: r.value.reason || '' }
       }
-      return { id: rows[i].id, status: 'failed', error: 'Promise rejected' }
+      return { id: rows[i].id, rowId: rows[i].id, status: 'failed', reason: 'Promise rejected', error: 'Promise rejected' }
     })
 
     console.log('[SEND-EMAILS] Returning success response')

@@ -33,7 +33,7 @@ export default function FAQPage() {
     },
     {
       question: 'What if I need help with setup?',
-      answer: 'Our support team is available during business hours. You can reach us via email at support@yuvlex.com or by phone at +1 (800) 555-0139.'
+      answer: 'Our support team is available during business hours. You can reach us via email at support@yuvlex.com or by phone at +234 704 506 7029.'
     },
     {
       question: 'Can I use Yuvlex for secondary schools?',
@@ -137,7 +137,7 @@ export default function FAQPage() {
         <div style={{ background: 'oklch(42% 0.16 258)', borderRadius: '16px', padding: 'clamp(32px,5vw,48px)', color: '#fff' }}>
           <div style={{ font: '700 24px "Lora",Georgia,serif', marginBottom: '16px' }}>Still have questions?</div>
           <div style={{ font: '400 16px system-ui,sans-serif', opacity: 0.9, marginBottom: '24px', maxWidth: '500px', margin: '0 auto 24px' }}>
-            Can't find what you're looking for? Our support team is here to help.
+            Can&apos;t find what you&apos;re looking for? Our support team is here to help.
           </div>
           <Link
             href="/support"
@@ -179,7 +179,7 @@ export default function FAQPage() {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <a href="mailto:support@yuvlex.com" style={{ font: '400 14px system-ui,sans-serif', color: 'oklch(30% 0.02 258)', textDecoration: 'none' }}>support@yuvlex.com</a>
-                <a href="tel:+18005550139" style={{ font: '400 14px system-ui,sans-serif', color: 'oklch(30% 0.02 258)', textDecoration: 'none' }}>+1 (800) 555-0139</a>
+                <a href="tel:+2347045067029" style={{ font: '400 14px system-ui,sans-serif', color: 'oklch(30% 0.02 258)', textDecoration: 'none' }}>+234 704 506 7029</a>
               </div>
             </div>
           </div>

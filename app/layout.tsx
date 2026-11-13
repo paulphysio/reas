@@ -101,6 +101,7 @@ export default function RootLayout({
     "contactPoint": {
       "@type": "ContactPoint",
       "email": "support@yuvlex.com",
+      "telephone": "+2347045067029",
       "contactType": "customer support",
       "areaServed": "NG",
       "availableLanguage": "English"

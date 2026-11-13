@@ -164,7 +164,7 @@ export default function PricingPage() {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <a href="mailto:support@yuvlex.com" style={{ font: '400 14px system-ui,sans-serif', color: 'oklch(30% 0.02 258)', textDecoration: 'none' }}>support@yuvlex.com</a>
-                <a href="tel:+18005550139" style={{ font: '400 14px system-ui,sans-serif', color: 'oklch(30% 0.02 258)', textDecoration: 'none' }}>+1 (800) 555-0139</a>
+                <a href="tel:+2347045067029" style={{ font: '400 14px system-ui,sans-serif', color: 'oklch(30% 0.02 258)', textDecoration: 'none' }}>+234 704 506 7029</a>
               </div>
             </div>
           </div>

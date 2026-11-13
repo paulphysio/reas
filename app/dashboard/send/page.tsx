@@ -6,7 +6,7 @@ import * as XLSX from 'xlsx'
 
 interface Row {
   id: number
-  [key: string]: any
+  [key: string]: unknown
   validation: 'ready' | 'missing-email'
   result?: 'sent' | 'failed'
   failReason?: string
@@ -20,7 +20,8 @@ export default function SendPage() {
   const [columns, setColumns] = useState<string[]>([])
   const [emailColumn, setEmailColumn] = useState<string>('')
   const [sendProgress, setSendProgress] = useState(0)
-  const [loading, setLoading] = useState(false)
+  const [sheetId, setSheetId] = useState<string | null>(null)
+  const [, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [profile, setProfile] = useState<{ user_type?: string; department_id?: string; custom_department_name?: string } | null>(null)
   const [loadingProfile, setLoadingProfile] = useState(true)
@@ -41,8 +42,6 @@ export default function SendPage() {
   const levelOptions = isSecondary
     ? ['JSS 1', 'JSS 2', 'JSS 3', 'SS 1', 'SS 2', 'SS 3']
     : ['100', '200', '300', '400', '500', '600']
-  const defaultSemester = isSecondary ? 'First Term' : 'Harmattan'
-  const defaultLevel = isSecondary ? 'SS 1' : '100'
 
   // Map secondary class to numeric level for database
   const getLevelValue = (lvl: string) => {
@@ -62,18 +61,6 @@ export default function SendPage() {
   
   const supabase = createClient()
 
-  // Update defaults when user type changes
-  useEffect(() => {
-    if (profile?.user_type) {
-      setSemester(defaultSemester)
-      setLevel(defaultLevel)
-    }
-  }, [profile?.user_type])
-
-  useEffect(() => {
-    fetchProfile()
-  }, [])
-
   const fetchProfile = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -88,13 +75,26 @@ export default function SendPage() {
       .single()
 
     setProfile(data || null)
+    if (data?.user_type) {
+      const secondary = data.user_type === 'secondary'
+      setSemester(secondary ? 'First Term' : 'Harmattan')
+      setLevel(secondary ? 'SS 1' : '100')
+    }
     setLoadingProfile(false)
   }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchProfile()
+  }, [])
 
   const handleFileChosen = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    
+    setError('')
+    setRows([])
+    setColumns([])
+    setEmailColumn('')
     setFileName(file.name)
     
     const reader = new FileReader()
@@ -103,14 +103,14 @@ export default function SendPage() {
       const workbook = XLSX.read(data, { type: 'binary' })
       const sheetName = workbook.SheetNames[0]
       const sheet = workbook.Sheets[sheetName]
-      const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as any[][]
+      const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as unknown[][]
       
       if (jsonData.length < 2) {
         setError('File appears to be empty or invalid')
         return
       }
       
-      const headers = jsonData[0] as string[]
+      const headers = (jsonData[0] as unknown[]).map((header) => String(header ?? ''))
       setColumns(headers)
       
       // Find email column (case-insensitive)
@@ -125,13 +125,13 @@ export default function SendPage() {
       }
       setEmailColumn(emailCol)
       
-      const dataRows = jsonData.slice(1).map((row, index) => {
-        const rowData: any = { id: index + 1 }
+      const dataRows: Row[] = jsonData.slice(1).map((row, index) => {
+        const rowData: Row = { id: index + 1, validation: 'ready' }
         headers.forEach((header, i) => {
-          rowData[header] = row[i] || ''
+          rowData[header] = row[i] ?? ''
         })
         
-        const email = rowData[emailCol] || ''
+        const email = String(rowData[emailCol] ?? '')
         return {
           ...rowData,
           validation: (email.trim() ? 'ready' : 'missing-email') as 'ready' | 'missing-email',
@@ -144,10 +144,11 @@ export default function SendPage() {
   }
 
   const submitUpload = () => {
-    if (!fileName || rows.length === 0) {
-      setError('Please upload a valid file with data')
+    if (!fileName || rows.length === 0 || !emailColumn) {
+      setError('Please upload a valid file with an email column and data')
       return
     }
+    setError('')
     setStep('preview')
     setModalOpen(false)
   }
@@ -165,6 +166,7 @@ export default function SendPage() {
     setStep('sending')
     setSendProgress(0)
     setError('')
+    let progressTimer: ReturnType<typeof setInterval> | undefined
 
     try {
       const { data: { user } } = await supabase.auth.getUser()
@@ -195,8 +197,12 @@ export default function SendPage() {
           filename: fileName,
           columns: columns,
           data: rows.map(r => {
-            const { id, validation, result, failReason, ...rest } = r
-            return rest
+            const rowData: Record<string, unknown> = { ...r }
+            delete rowData.id
+            delete rowData.validation
+            delete rowData.result
+            delete rowData.failReason
+            return rowData
           }),
           comment,
           signature,
@@ -210,6 +216,11 @@ export default function SendPage() {
       }
       
       console.log('[SEND PAGE] Sheet created:', sheetData.id)
+      setSheetId(sheetData.id)
+
+      progressTimer = setInterval(() => {
+        setSendProgress((prev) => Math.min(90, prev + 2))
+      }, 120)
 
       // Send emails via API
       console.log('[SEND PAGE] Calling API')
@@ -249,11 +260,13 @@ export default function SendPage() {
       console.log('[SEND PAGE] Updated rows with results')
       setRows(updatedRows)
       setStep('result')
+      setSendProgress(100)
     } catch (err) {
       console.error('[SEND PAGE] Error:', err)
       setError(err instanceof Error ? err.message : 'Failed to send emails')
       setStep('preview')
     } finally {
+      if (progressTimer) clearInterval(progressTimer)
       setLoading(false)
     }
   }
@@ -276,16 +289,24 @@ export default function SendPage() {
     setStep('sending')
     setSendProgress(0)
     setError('')
+    let progressTimer: ReturnType<typeof setInterval> | undefined
 
     try {
       const failedRows = rows.filter(r => r.result === 'failed')
       if (failedRows.length === 0) return
 
+      progressTimer = setInterval(() => {
+        setSendProgress((prev) => Math.min(90, prev + 2))
+      }, 120)
+
       const response = await fetch('/api/send-emails', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          rows: failedRows.map(r => ({ ...r, resend: true })),
+          rows: failedRows,
+          sheet_id: sheetId,
+          columns,
+          emailColumn,
           year,
           semester,
           session,
@@ -299,21 +320,22 @@ export default function SendPage() {
       
       if (!response.ok) throw new Error(result.error || 'Failed to resend emails')
 
-      // Update rows with results
       const updatedRows = rows.map((r) => {
-        const resultRow = result.results.find((res: any) => res.rowId === r.id)
+        const resultRow = result.results.find((res: { rowId?: number; id?: number; status?: 'sent' | 'failed'; reason?: string; error?: string }) => res.rowId === r.id || res.id === r.id)
         if (resultRow && r.result === 'failed') {
-          return { ...r, result: resultRow.status, failReason: resultRow.reason }
+          return { ...r, result: resultRow.status, failReason: resultRow.reason || resultRow.error }
         }
         return r
       })
 
       setRows(updatedRows)
       setStep('result')
+      setSendProgress(100)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to resend emails')
       setStep('result')
     } finally {
+      if (progressTimer) clearInterval(progressTimer)
       setLoading(false)
     }
   }
@@ -328,18 +350,26 @@ export default function SendPage() {
   const missingCount = rows.filter((r) => r.validation === 'missing-email').length
   const sentRows = rows.filter((r) => r.result === 'sent')
   const failedRows = rows.filter((r) => r.result === 'failed')
+  const previewGridTemplate = `${columns.map(() => '1fr').join(' ')} 1fr`
+  const batchLabel = `${semester} ${year} · ${session} · ${levelLabel} ${level}`
+  const sendingTotal = rows.some((r) => r.result) ? Math.max(1, failedRows.length || rows.length) : rows.length
 
   return (
     <div>
+      {error && (
+        <div style={{ maxWidth: '640px', marginBottom: '16px', padding: '12px 14px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 25)', background: 'oklch(97% 0.02 25)', color: 'oklch(45% 0.16 25)', font: '400 13px system-ui,sans-serif' }}>
+          {error}
+        </div>
+      )}
       {/* Upload State */}
       {step === 'upload' && (
-        <div style={{ maxWidth: '560px', background: '#fff', border: '1px solid oklch(88% 0.02 258)', borderRadius: '14px', padding: '32px', textAlign: 'center' }}>
+        <div style={{ maxWidth: '560px', background: 'var(--reas-card)', border: '1px solid var(--reas-border)', borderRadius: '14px', padding: '32px', textAlign: 'center' }}>
           {loadingProfile ? (
-            <div style={{ font: '400 14px system-ui,sans-serif', color: 'oklch(45% 0.02 258)' }}>Loading...</div>
+            <div style={{ font: '400 14px system-ui,sans-serif', color: 'var(--reas-muted)' }}>Loading...</div>
           ) : !profile?.department_id && !profile?.custom_department_name ? (
             <>
               <div style={{ font: '700 18px "Lora",Georgia,serif', marginBottom: '8px' }}>Set your institution first</div>
-              <div style={{ font: '400 14px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', marginBottom: '20px' }}>You need to set your institution and department before sending results.</div>
+              <div style={{ font: '400 14px system-ui,sans-serif', color: 'var(--reas-muted)', marginBottom: '20px' }}>You need to set your institution and department before sending results.</div>
               <div style={{ background: 'oklch(42% 0.16 258)', color: '#fff', font: '600 14px system-ui,sans-serif', padding: '11px 22px', borderRadius: '8px', cursor: 'pointer', display: 'inline-block', whiteSpace: 'nowrap' }} onClick={() => window.location.reload()}>
                 Refresh after setting institution
               </div>
@@ -347,7 +377,7 @@ export default function SendPage() {
           ) : (
             <>
               <div style={{ font: '700 18px "Lora",Georgia,serif', marginBottom: '8px' }}>No sheet uploaded yet</div>
-              <div style={{ font: '400 14px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', marginBottom: '20px' }}>Upload this session's {isSecondary ? 'report' : 'advising'} sheet to send results to each student.</div>
+              <div style={{ font: '400 14px system-ui,sans-serif', color: 'var(--reas-muted)', marginBottom: '20px' }}>Upload this session&apos;s {isSecondary ? 'report' : 'advising'} sheet to send results to each student.</div>
               <div onClick={() => setModalOpen(true)} style={{ background: 'oklch(42% 0.16 258)', color: '#fff', font: '600 14px system-ui,sans-serif', padding: '11px 22px', borderRadius: '8px', cursor: 'pointer', display: 'inline-block', whiteSpace: 'nowrap' }}>
                 Upload Excel File
               </div>
@@ -358,19 +388,20 @@ export default function SendPage() {
 
       {/* Preview State */}
       {step === 'preview' && (
-        <div style={{ background: '#fff', border: '1px solid oklch(88% 0.02 258)', borderRadius: '14px', padding: '32px' }}>
+        <div style={{ background: 'var(--reas-card)', border: '1px solid var(--reas-border)', borderRadius: '14px', padding: '32px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
             <div>
               <div style={{ font: '700 22px "Lora",Georgia,serif', marginBottom: '6px' }}>Review before sending</div>
-              <div style={{ font: '400 14px system-ui,sans-serif', color: 'oklch(45% 0.02 258)' }}>{semester} {year} · {session} · {levelLabel} {level} · {rows.length} records</div>
+              <div style={{ font: '400 14px system-ui,sans-serif', color: 'var(--reas-muted)' }}>{semester} {year} · {session} · {levelLabel} {level} · {rows.length} records</div>
             </div>
-            <div onClick={backToUpload} style={{ font: '600 13.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', cursor: 'pointer', padding: '9px 4px' }}>Back</div>
+            <div onClick={backToUpload} style={{ font: '600 13.5px system-ui,sans-serif', color: 'var(--reas-muted)', cursor: 'pointer', padding: '9px 4px' }}>Back</div>
           </div>
 
-          <div style={{ border: '1px solid oklch(88% 0.02 258)', borderRadius: '10px', overflowX: 'auto' }}>
+          <div style={{ border: '1px solid var(--reas-border)', borderRadius: '10px', overflowX: 'auto' }}>
             <div style={{ minWidth: '760px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: columns.map(() => '1fr').join(' '), background: 'oklch(96% 0.015 258)', padding: '11px 16px', font: '600 11.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.04em', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: previewGridTemplate, background: 'var(--reas-tablehead)', padding: '11px 16px', font: '600 11.5px system-ui,sans-serif', color: 'var(--reas-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', gap: '12px' }}>
                 {columns.map((col) => <div key={col}>{col}</div>)}
+                <div>Status</div>
               </div>
               {rows.map((row) => {
                 const isMissingEmail = row.validation === 'missing-email'
@@ -378,22 +409,22 @@ export default function SendPage() {
                 if (isMissingEmail) { statusLabel = 'Missing email'; badgeBg = 'oklch(93% 0.05 60)'; badgeFg = 'oklch(50% 0.15 60)' }
                 
                 return (
-                  <div key={row.id} style={{ display: 'grid', gridTemplateColumns: columns.map(() => '1fr').join(' '), padding: '12px 16px', borderTop: '1px solid oklch(92% 0.015 258)', alignItems: 'center', gap: '12px' }}>
+                  <div key={row.id} style={{ display: 'grid', gridTemplateColumns: previewGridTemplate, padding: '12px 16px', borderTop: '1px solid var(--reas-divider)', alignItems: 'center', gap: '12px' }}>
                     {columns.map((col) => {
                       const isEmailCol = col.toLowerCase() === emailColumn.toLowerCase()
                       if (isEmailCol && isMissingEmail) {
                         return (
                           <input 
                             key={col}
-                            value={row[col]} 
+                            value={String(row[col] ?? '')} 
                             onChange={(e) => updateRowEmail(row.id, e.target.value)}
                             placeholder="Add email address" 
-                            style={{ font: '400 13px system-ui,sans-serif', padding: '6px 8px', borderRadius: '6px', border: '1px solid oklch(65% 0.16 30)', background: '#fff', color: 'oklch(22% 0.035 258)', width: '100%', outline: 'none' }} 
+                            style={{ font: '400 13px system-ui,sans-serif', padding: '6px 8px', borderRadius: '6px', border: '1px solid oklch(65% 0.16 30)', background: 'var(--reas-card)', color: 'var(--reas-text)', width: '100%', outline: 'none' }} 
                           />
                         )
                       }
                       return (
-                        <div key={col} style={{ font: '400 13px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row[col]}</div>
+                        <div key={col} style={{ font: '400 13px system-ui,sans-serif', color: 'var(--reas-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{String(row[col] ?? '')}</div>
                       )
                     })}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -421,11 +452,11 @@ export default function SendPage() {
 
       {/* Sending State */}
       {step === 'sending' && (
-        <div style={{ maxWidth: '560px', margin: '40px auto', background: '#fff', border: '1px solid oklch(88% 0.02 258)', borderRadius: '14px', padding: '44px', textAlign: 'center' }}>
+        <div style={{ maxWidth: '560px', margin: '40px auto', background: 'var(--reas-card)', border: '1px solid var(--reas-border)', borderRadius: '14px', padding: '44px', textAlign: 'center' }}>
           <div style={{ width: '40px', height: '40px', borderRadius: '50%', border: '3px solid oklch(90% 0.015 258)', borderTopColor: 'oklch(42% 0.16 258)', margin: '0 auto 22px', animation: 'spin 0.9s linear infinite' }}></div>
-          <div style={{ font: '700 19px "Lora",Georgia,serif', marginBottom: '10px' }}>Sending {Math.round((sendProgress / 100) * rows.length)} of {rows.length}…</div>
-          <div style={{ font: '400 13.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', marginBottom: '22px' }}>Fall 2026 · Session 1 · Level 200</div>
-          <div style={{ height: '8px', borderRadius: '100px', background: 'oklch(94% 0.015 258)', overflow: 'hidden' }}>
+          <div style={{ font: '700 19px "Lora",Georgia,serif', marginBottom: '10px' }}>Sending {Math.round((sendProgress / 100) * sendingTotal)} of {sendingTotal}…</div>
+          <div style={{ font: '400 13.5px system-ui,sans-serif', color: 'var(--reas-muted)', marginBottom: '22px' }}>{batchLabel}</div>
+          <div style={{ height: '8px', borderRadius: '100px', background: 'var(--reas-tablehead)', overflow: 'hidden' }}>
             <div style={{ height: '100%', borderRadius: '100px', background: 'oklch(42% 0.16 258)', width: `${sendProgress}%`, transition: 'width 0.14s linear' }}></div>
           </div>
         </div>
@@ -433,18 +464,18 @@ export default function SendPage() {
 
       {/* Result State */}
       {step === 'result' && (
-        <div style={{ maxWidth: '640px', background: '#fff', border: '1px solid oklch(88% 0.02 258)', borderRadius: '14px', padding: '36px' }}>
+        <div style={{ maxWidth: '640px', background: 'var(--reas-card)', border: '1px solid var(--reas-border)', borderRadius: '14px', padding: '36px' }}>
           <div style={{ font: '700 22px "Lora",Georgia,serif', marginBottom: '6px' }}>Batch complete</div>
-          <div style={{ font: '400 14px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', marginBottom: '24px' }}>{semester} {year} · {session} · Level {level}</div>
+          <div style={{ font: '400 14px system-ui,sans-serif', color: 'var(--reas-muted)', marginBottom: '24px' }}>{semester} {year} · {session} · Level {level}</div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '26px' }}>
-            <div style={{ background: 'oklch(96% 0.015 258)', borderRadius: '10px', padding: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(120px,1fr))', gap: '16px', marginBottom: '26px' }}>
+            <div style={{ background: 'var(--reas-tablehead)', borderRadius: '10px', padding: '20px' }}>
               <div style={{ font: '700 32px "Lora",Georgia,serif', color: 'oklch(42% 0.16 258)' }}>{sentRows.length}</div>
-              <div style={{ font: '600 13px system-ui,sans-serif', color: 'oklch(45% 0.02 258)' }}>Sent</div>
+              <div style={{ font: '600 13px system-ui,sans-serif', color: 'var(--reas-muted)' }}>Sent</div>
             </div>
             <div style={{ background: 'oklch(97% 0.03 40)', borderRadius: '10px', padding: '20px' }}>
               <div style={{ font: '700 32px "Lora",Georgia,serif', color: 'oklch(55% 0.19 25)' }}>{failedRows.length}</div>
-              <div style={{ font: '600 13px system-ui,sans-serif', color: 'oklch(45% 0.02 258)' }}>Failed</div>
+              <div style={{ font: '600 13px system-ui,sans-serif', color: 'var(--reas-muted)' }}>Failed</div>
             </div>
           </div>
 
@@ -454,12 +485,12 @@ export default function SendPage() {
               {failedRows.map((row) => {
                 const nameCol = columns.find(c => c.toLowerCase().includes('name')) || columns[0]
                 return (
-                  <div key={row.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', border: '1px solid oklch(88% 0.02 258)', borderRadius: '8px', marginBottom: '8px' }}>
+                  <div key={row.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', border: '1px solid var(--reas-border)', borderRadius: '8px', marginBottom: '8px' }}>
                     <div>
-                      <div style={{ font: '600 13.5px system-ui,sans-serif' }}>{row[nameCol]}</div>
+                      <div style={{ font: '600 13.5px system-ui,sans-serif' }}>{String(row[nameCol] ?? '')}</div>
                       <div style={{ font: '400 12.5px system-ui,sans-serif', color: 'oklch(55% 0.19 25)' }}>{row.failReason}</div>
                     </div>
-                    <div style={{ font: '400 12.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)' }}>{row[emailColumn]}</div>
+                    <div style={{ font: '400 12.5px system-ui,sans-serif', color: 'var(--reas-muted)' }}>{String(row[emailColumn] ?? '')}</div>
                   </div>
                 )
               })}
@@ -468,7 +499,7 @@ export default function SendPage() {
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
             {failedRows.length > 0 && (
-              <div onClick={resendFailed} style={{ font: '600 14px system-ui,sans-serif', color: 'oklch(42% 0.16 258)', padding: '11px 20px', borderRadius: '8px', border: '1px solid oklch(88% 0.02 258)', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
+              <div onClick={resendFailed} style={{ font: '600 14px system-ui,sans-serif', color: 'oklch(42% 0.16 258)', padding: '11px 20px', borderRadius: '8px', border: '1px solid var(--reas-border)', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
                 Resend failed ({failedRows.length})
               </div>
             )}
@@ -482,30 +513,34 @@ export default function SendPage() {
       {/* Upload Modal */}
       {modalOpen && (
         <div onClick={() => setModalOpen(false)} style={{ position: 'fixed', inset: 0, background: 'oklch(20% 0.02 258 / 0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '24px' }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', color: 'oklch(22% 0.035 258)', borderRadius: '14px', padding: '30px', width: '560px', maxWidth: '100%', maxHeight: '90vh', overflow: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: 'var(--reas-card)', color: 'var(--reas-text)', borderRadius: '14px', padding: '30px', width: '560px', maxWidth: '100%', maxHeight: '90vh', overflow: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
               <div style={{ font: '700 19px "Lora",Georgia,serif' }}>Upload Excel File</div>
-              <div onClick={() => setModalOpen(false)} style={{ cursor: 'pointer', font: '600 16px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', padding: '4px 8px' }}>✕</div>
+              <div onClick={() => setModalOpen(false)} style={{ cursor: 'pointer', font: '600 16px system-ui,sans-serif', color: 'var(--reas-muted)', padding: '4px 8px' }}>✕</div>
             </div>
 
-            <div style={{ display: 'flex', gap: '10px', background: 'oklch(96% 0.015 258)', border: '1px solid oklch(88% 0.02 258)', borderRadius: '9px', padding: '12px 14px', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', gap: '10px', background: 'var(--reas-tablehead)', border: '1px solid var(--reas-border)', borderRadius: '9px', padding: '12px 14px', marginBottom: '20px' }}>
               <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'oklch(42% 0.16 258)', flex: 'none', marginTop: '6px' }}></span>
-              <div style={{ font: '400 13px/1.5 system-ui,sans-serif', color: 'oklch(35% 0.03 258)' }}>We don't store your data. This file is read in memory and discarded once sending finishes.</div>
+              <div style={{ font: '400 13px/1.5 system-ui,sans-serif', color: 'var(--reas-muted)' }}>Your sheet is parsed in your secure workspace and retained for delivery, retries, and audit history.</div>
             </div>
 
-            <label style={{ border: '1px solid oklch(88% 0.02 258)', borderRadius: '8px', padding: '11px 14px', cursor: 'pointer', font: '400 13.5px system-ui,sans-serif', marginBottom: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: fileName ? 'oklch(22% 0.035 258)' : 'oklch(50% 0.02 258)', display: 'block' }}>
+            {error && (
+              <div style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 25)', background: 'oklch(97% 0.02 25)', color: 'oklch(45% 0.16 25)', font: '400 12.5px system-ui,sans-serif', marginBottom: '16px' }}>{error}</div>
+            )}
+
+            <label style={{ border: '1px solid var(--reas-border)', borderRadius: '8px', padding: '11px 14px', cursor: 'pointer', font: '400 13.5px system-ui,sans-serif', marginBottom: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: fileName ? 'var(--reas-text)' : 'var(--reas-muted)', display: 'block' }}>
               {fileName || 'Choose file...'}
               <input type="file" accept=".xlsx,.xls,.csv" onChange={handleFileChosen} style={{ display: 'none' }} />
             </label>
-            <div style={{ font: '400 12px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', marginBottom: '18px' }}>Please upload Excel files only — .xlsx, .xls, or .csv.</div>
+            <div style={{ font: '400 12px system-ui,sans-serif', color: 'var(--reas-muted)', marginBottom: '18px' }}>Please upload Excel files only — .xlsx, .xls, or .csv.</div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
               <div>
-                <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Session</div>
+                <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'var(--reas-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Session</div>
                 <select 
                   value={session} 
                   onChange={(e) => setSession(e.target.value)}
-                  style={{ width: '100%', font: '600 13px system-ui,sans-serif', padding: '8px 10px', borderRadius: '6px', border: '1px solid oklch(88% 0.02 258)', background: '#fff', color: 'oklch(22% 0.035 258)', outline: 'none' }}
+                  style={{ width: '100%', font: '600 13px system-ui,sans-serif', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--reas-border)', background: 'var(--reas-card)', color: 'var(--reas-text)', outline: 'none' }}
                 >
                   <option value="Session 1">Session 1</option>
                   <option value="Session 2">Session 2</option>
@@ -513,11 +548,11 @@ export default function SendPage() {
                 </select>
               </div>
               <div>
-                <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Year</div>
+                <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'var(--reas-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Year</div>
                 <select 
                   value={year} 
                   onChange={(e) => setYear(e.target.value)}
-                  style={{ width: '100%', font: '600 13px system-ui,sans-serif', padding: '8px 10px', borderRadius: '6px', border: '1px solid oklch(88% 0.02 258)', background: '#fff', color: 'oklch(22% 0.035 258)', outline: 'none' }}
+                  style={{ width: '100%', font: '600 13px system-ui,sans-serif', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--reas-border)', background: 'var(--reas-card)', color: 'var(--reas-text)', outline: 'none' }}
                 >
                   <option value="2026">2026</option>
                   <option value="2025">2025</option>
@@ -527,39 +562,39 @@ export default function SendPage() {
               </div>
             </div>
 
-            <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Semester</div>
+            <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'var(--reas-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Semester</div>
             <select 
               value={semester} 
               onChange={(e) => setSemester(e.target.value)}
-              style={{ width: '100%', font: '600 13px system-ui,sans-serif', padding: '8px 10px', borderRadius: '6px', border: '1px solid oklch(88% 0.02 258)', background: '#fff', color: 'oklch(22% 0.035 258)', marginBottom: '14px', outline: 'none' }}
+              style={{ width: '100%', font: '600 13px system-ui,sans-serif', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--reas-border)', background: 'var(--reas-card)', color: 'var(--reas-text)', marginBottom: '14px', outline: 'none' }}
             >
               {semesterOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
             </select>
 
-            <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>{levelLabel}</div>
+            <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'var(--reas-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>{levelLabel}</div>
             <select 
               value={level} 
               onChange={(e) => setLevel(e.target.value)}
-              style={{ width: '100%', font: '600 13px system-ui,sans-serif', padding: '8px 10px', borderRadius: '6px', border: '1px solid oklch(88% 0.02 258)', background: '#fff', color: 'oklch(22% 0.035 258)', marginBottom: '14px', outline: 'none' }}
+              style={{ width: '100%', font: '600 13px system-ui,sans-serif', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--reas-border)', background: 'var(--reas-card)', color: 'var(--reas-text)', marginBottom: '14px', outline: 'none' }}
             >
               {levelOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
             </select>
 
-            <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Comment</div>
+            <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'var(--reas-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Comment</div>
             <textarea 
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               rows={3} 
               placeholder="Optional note for this batch" 
-              style={{ width: '100%', font: '400 13.5px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(88% 0.02 258)', background: '#fff', color: 'oklch(22% 0.035 258)', resize: 'vertical', marginBottom: '16px', outline: 'none' }}
+              style={{ width: '100%', font: '400 13.5px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--reas-border)', background: 'var(--reas-card)', color: 'var(--reas-text)', resize: 'vertical', marginBottom: '16px', outline: 'none' }}
             ></textarea>
 
-            <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Signature</div>
+            <div style={{ font: '600 10.5px system-ui,sans-serif', color: 'var(--reas-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Signature</div>
             <input 
               value={signature}
               onChange={(e) => setSignature(e.target.value)}
               placeholder="Type your full name to sign off" 
-              style={{ width: '100%', font: '400 13.5px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(88% 0.02 258)', background: '#fff', color: 'oklch(22% 0.035 258)', marginBottom: '20px', outline: 'none' }} 
+              style={{ width: '100%', font: '400 13.5px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--reas-border)', background: 'var(--reas-card)', color: 'var(--reas-text)', marginBottom: '20px', outline: 'none' }} 
             />
 
             <div 
