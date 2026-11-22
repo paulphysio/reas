@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
+  const supabaseResponse = NextResponse.next({
     request,
   })
 
@@ -29,7 +29,7 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // Allow public access to home page, login, register, support, faq, pricing, and admin login
-  const publicPaths = ['/', '/auth/login', '/auth/register', '/support', '/faq', '/pricing', '/admin/login']
+  const publicPaths = ['/', '/auth/login', '/auth/register', '/auth/forgot-password', '/auth/update-password', '/support', '/faq', '/pricing', '/admin/login']
   const isPublicPath = publicPaths.includes(request.nextUrl.pathname)
 
   if (!user && !isPublicPath) {

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { getAuthErrorMessage } from '@/lib/auth-errors'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -34,7 +35,7 @@ export default function LoginPage() {
     })
 
     if (error) {
-      setError(error.message)
+      setError(getAuthErrorMessage(error))
     } else {
       router.push('/dashboard')
       router.refresh()
@@ -75,10 +76,13 @@ export default function LoginPage() {
               required
               style={{ width: '100%', font: '400 14px system-ui,sans-serif', padding: '10px 12px', borderRadius: '8px', border: '1px solid oklch(85% 0.02 258)', outline: 'none' }}
             />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px' }}>
+              <Link href="/auth/forgot-password" style={{ font: '600 12px system-ui,sans-serif', color: 'oklch(42% 0.16 258)', textDecoration: 'none' }}>Forgot password?</Link>
+            </div>
           </div>
 
           {error && (
-            <div style={{ font: '400 12.5px system-ui,sans-serif', color: 'oklch(55% 0.19 25)', marginTop: '-10px' }}>{error}</div>
+            <div style={{ font: '400 12.5px system-ui,sans-serif', color: 'oklch(55% 0.19 25)', border: '1px solid oklch(88% 0.04 25)', background: 'oklch(97% 0.02 25)', borderRadius: '8px', padding: '10px 12px' }}>{error}</div>
           )}
 
           <button
@@ -91,7 +95,7 @@ export default function LoginPage() {
         </form>
 
         <div style={{ font: '400 12px system-ui,sans-serif', color: 'oklch(45% 0.02 258)', marginTop: '16px', textAlign: 'center' }}>
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <Link href="/auth/register" style={{ color: 'oklch(42% 0.16 258)', textDecoration: 'none' }}>Create account</Link>
         </div>
 

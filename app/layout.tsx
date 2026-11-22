@@ -127,6 +127,7 @@ export default function RootLayout({
       </head>
       <body className={`${fraunces.variable} ${inter.variable} ${lora.variable}`}>
         {children}
+        <script src="https://chatsup.org/widget.js" data-site="31a9d7c9e99e46a181a24d60328f64f5" async></script>
       </body>
     </html>
   );
